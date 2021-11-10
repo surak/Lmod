@@ -1,0 +1,64 @@
+lmod (8.5.25) unstable; urgency=medium
+
+  * New version after 4 years
+  * New maintainer
+ 
+ -- Alexandre Strube <surak@surak.eti.br>  Wed, 10 nov 2020 18:35:00 +0100
+
+lmod (6.6-0.3) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Pass PS=/bin/ps to configure (Closes: #915304)
+    - fixes reproducible build on merged-usr vs non-merged systems
+
+ -- Andreas Henriksson <andreas@fatal.se>  Sun, 02 Dec 2018 18:06:51 +0100
+
+lmod (6.6-0.2) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Conflict with environment-modules. (Closes: #846580)
+
+ -- Christian Hofstaedtler <zeha@debian.org>  Thu, 22 Dec 2016 06:49:08 +0000
+
+lmod (6.6-0.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * New upstream release. (Closes: #793355)
+  * Refresh patch change_paths
+  * Update debhelper compatibility 9.
+  * Install README.md, it has been renamed from README.
+  * Add build-depends on procps.
+  * Add build-depends and depends on tcl.
+  * Update Standars-Version to 3.9.8, no changes required.
+  * Update lintian overrides.
+  * Make lmod to behave like environment-modules:
+    - Allow to configure the list of modules path at /etc/lmod/modulespath
+    - Install /etc/profile.d/lmod.sh and read MODULESPATH from
+      /etc/lmod/modulespath
+
+ -- Ana Beatriz Guerrero Lopez <ana@debian.org>  Fri, 11 Nov 2016 23:37:24 +0100
+
+lmod (5.8-1) unstable; urgency=medium
+
+  * Imported Upstream version 5.8 (Closes: #764722)
+  * updated path patch for version 5.8
+  * removed watch file (not working with SF.net)
+  * change standards version to 3.9.5
+  * add short licensetext
+
+ -- Aaron Zauner <azet@azet.org>  Tue, 04 Nov 2014 16:45:19 -0600
+
+lmod (5.6.2-1) unstable; urgency=medium
+
+  * Imported Upstream version 5.6.2
+  * Added autopkgtest tests (loading)
+  * Generalized lintian ignores
+  * Updated Makefile patch
+
+ -- Aaron Zauner <azet@azet.org>  Sat, 07 Jun 2014 17:57:30 -0500
+
+lmod (5.5.1-1) unstable; urgency=medium
+
+  * Initial release (Closes: #743823)
+
+ -- Aaron Zauner <azet@azet.org>  Wed, 21 May 2014 00:05:23 -0600
