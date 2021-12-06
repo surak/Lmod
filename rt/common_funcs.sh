@@ -57,6 +57,7 @@ cleanUp ()
        -e "s| $PATH_to_SHA1||g"                           \
        -e "s|\\\;$PATH_to_SHA1:[0-9]\\\;|\\\;|g"          \
        -e "s|^Lmod version.*||g"                          \
+       -e "s|^LMOD_LD_PRELOAD.*||g"                       \
        -e "s|^LuaFileSystem version.*||g"                 \
        -e "s|^Lua Version.*||g"                           \
        -e "s|^\(uname -a\).*|\1|g"                        \
@@ -75,11 +76,14 @@ cleanUp ()
        -e "s|unset _ModuleTable..._;||g"                  \
        -e "s|$outputDir|OutputDIR|g"                      \
        -e "s|$projectDir|ProjectDIR|g"                    \
+       -e "s|(file \"ProjectDIR/rt/end2end.*)||g"         \
+       -e "s|(file \"OutputDIR/lmod/lmod/.*)||g"          \
        -e "s|^Admin file.*||g"                            \
        -e "s|^MODULERCFILE.*||g"                          \
        -e "s|$HOME|~|g"                                   \
        -e "s|\-%%\-.*||g"                                 \
        -e "s| *----* *||g"                                \
+       -e "s|^ *=============================* *|=============================|g" \
        -e "s|^--* *| |g"                                  \
        -e "s|--* *$||g"                                   \
        -e "s|\\\9|	|g"                               \
@@ -273,7 +277,7 @@ initStdEnvVars()
   COUNT=0
   ORIG_HOME=`(cd $HOME; /bin/pwd)`
   HOME=`/bin/pwd`
-  export LMOD_TERM_WIDTH=300
+  export LMOD_TERM_WIDTH=100000
 
   PATH=/usr/bin:/bin
   for i in $PATH_to_SHA1 $PATH_to_TM $PATH_to_LUA $PATH_TO_SED $projectDir/proj_mgmt; do

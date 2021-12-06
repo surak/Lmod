@@ -335,7 +335,6 @@ function main()
       {cmd = 'whatis',       min = 1, action = whatisTbl   },
    }
 
-   build_i18n_messages()
    dbg.set_prefix(colorize("red","Lmod"))
 
    local shellNm = barefilename(arg[1])
@@ -376,9 +375,14 @@ function main()
       dbg.print{"Lmod Version: ",Version.name(),"\n"}
       dbg.print{"package.path: ",package.path,"\n"}
       dbg.print{"package.cpath: ",package.cpath,"\n"}
-      dbg.print{"lmodPath: ", lmodPath,"\n"}
+      dbg.print{"lmodPath: ", cosmic:value("LMOD_PACKAGE_PATH"),"\n"}
    end
+
    -- dumpversion and quit if requested.
+   if (masterTbl.dumpversion) then
+      io.stderr:write(Version.tag(),"\n")
+      os.exit(0)
+   end
 
    -- Build Shell object from shellNm
    Shell = BaseShell:build(shellNm)
@@ -394,11 +398,6 @@ function main()
       a[#a + 1] = concatTbl(arg," ")
       a[#a + 1] = "\n"
       Shell:echo(concatTbl(a,""))
-   end
-
-   if (masterTbl.dumpversion) then
-      io.stderr:write(Version.tag(),"\n")
-      os.exit(0)
    end
 
    -- gitversion and quit if requested.
@@ -477,21 +476,30 @@ function main()
       os.exit(0)
    end
 
+   -- Report ModuleTable if requested and exit.
    if (masterTbl.reportMT) then
       local mt = FrameStk:singleton():mt()
       io.stderr:write(mt:serializeTbl("pretty"),"\n")
       os.exit(0)
    end
 
+
+   -- Print usage and error out for unknown command.
    if (not cmdT) then
       io.stderr:write(version())
       io.stderr:write(Usage(),"\n")
       LmodErrorExit()
-   else
-      local cmd  = cmdT.cmd
-      dbg.print{"cmd name: ", cmdT.name,"\n"}
-      cmd(unpack(masterTbl.pargs))
+      os.exit(1)
    end
+
+
+   ------------------------------------------------------------
+   -- Do the work of Lmod 
+   ------------------------------------------------------------
+
+   local cmd  = cmdT.cmd
+   dbg.print{"cmd name: ", cmdT.name,"\n"}
+   cmd(unpack(masterTbl.pargs))
 
    ------------------------------------------------------------
    -- After running command reset frameStk and mt as the
