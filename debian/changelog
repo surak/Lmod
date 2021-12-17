@@ -1,3 +1,10 @@
+lmod (8.6.1) unstable; urgency=medium
+
+  * Setting TAG_VERSION to 8.6.1
+
+ -- Alexandre Strube <surak@surak.eti.br>  Wed, 10 nov 2020 18:35:00 +0100
+
+
 lmod (8.5.25) unstable; urgency=medium
 
   * New version after 4 years
