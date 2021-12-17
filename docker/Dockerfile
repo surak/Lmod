@@ -40,5 +40,6 @@ RUN apt-get update \
     
 
 RUN mkdir /tmp/git-repo; cd /tmp/git-repo ; git clone https://github.com/surak/Lmod.git ; \
+    git checkout tags/8.6.1 ; \
     cd Lmod ; debuild -b -uc -us; \
     cd .. ; dpkg -i ./lmod_8.6.1_all.deb
