@@ -8,11 +8,11 @@ Build-Depends: autotools-dev,
                lua-json,
                lua-posix,
                lua-term,
-               lua5.4,
+               lua5.3,
                procps,
                tcl,
                tcl-dev,
-               liblua5.4-dev
+               liblua5.3-dev
 Standards-Version: 3.9.8
 Homepage: https://www.tacc.utexas.edu/tacc-projects/lmod
 Vcs-Git: git:://github.com/TACC/Lmod.git
@@ -24,7 +24,7 @@ Depends: lua-filesystem,
          lua-json,
          lua-posix,
          lua-term,
-         lua5.4,
+         lua5.3,
          tcl,
          ${misc:Depends}
 Conflicts: environment-modules
