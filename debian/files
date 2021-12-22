@@ -1,2 +1,2 @@
-lmod_8.6.1_all.deb devel optional
-lmod_8.6.1_amd64.buildinfo devel optional
+lmod_#VERSION#_all.deb devel optional
+lmod_#VERSION#_amd64.buildinfo devel optional
