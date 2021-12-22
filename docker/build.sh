@@ -46,4 +46,6 @@ docker build -t debian .
 docker create --name deb debian 
 docker cp deb:/tmp/git-repo/lmod_${VERSION}_all.deb .
 docker rm deb
+
+echo "To run this image: docker run --rm -it --name deb debian  /bin/bash \nTo cleanup the cache: docker builder prune -a -f "
 fi
