@@ -16,7 +16,7 @@ lmod ($VERSION) unstable; urgency=medium
 
   * Setting TAG_VERSION to $VERSION
 
- -- Alexandre Strube <surak@surak.eti.br>  $(date)
+ -- Alexandre Strube <surak@surak.eti.br>  $(date -R)
 
 
 .
@@ -30,13 +30,20 @@ lmod_${VERSION}_all.deb devel optional
 lmod_${VERSION}_amd64.buildinfo devel optional
 EOM
 
-### Adding right version to dockerfile
-sed "s/git checkout tags.*/git checkout tags\/$VERSION \; \\ /g" Dockerfile
-sed "s/lmod_.*/lmod_${VERSION}_all.deb/g" Dockerfile 
-### 
+### Adding right version to dockerfile . The '' is because of the bsd version of sed.
+sed -i '' "s/git checkout tags.*/git checkout tags\/$VERSION \; \\\ /g" Dockerfile
+sed -i '' "s/lmod_.*/lmod_${VERSION}_all.deb ; \\\ /g" Dockerfile 
+
+### The container will fetch those from github, so they better be updated
 git add ../debian/files ../debian/changelog Dockerfile
 git commit -m "Added tag ${VERSION}" 
 git push
-docker build .
 
+# Build a docker image, calling Dockerfile from here. It clones this repo, checks out 
+# the latest tag, builds the debian package inside, creates a container from such
+# image, copies the file out and deletes the container (not the image)
+docker build -t debian .
+docker create --name deb debian 
+docker cp deb:/tmp/git-repo/lmod_${VERSION}_all.deb .
+docker rm deb
 fi
