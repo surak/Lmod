@@ -44,3 +44,6 @@ RUN mkdir /tmp/git-repo; cd /tmp/git-repo ; git clone https://github.com/surak/L
     git checkout master debian docker ; \
     cd Lmod ; debuild -b -uc -us; \
     cd .. ; dpkg -i ./lmod_8.6.2_all.deb ; \ 
+    source /etc/profile.d/lmod.sh ; \
+    module --version
+
