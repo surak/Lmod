@@ -32,7 +32,7 @@ EOM
 
 ### Adding right version to dockerfile
 sed "s/git checkout tags.*/git checkout tags\/$VERSION \; \\ /g" Dockerfile
-
+sed "s/lmod_.*/lmod_${VERSION}_all.deb/g" Dockerfile 
 ### 
 git add ../debian/files ../debian/changelog Dockerfile
 git commit -m "Added tag ${VERSION}" 
