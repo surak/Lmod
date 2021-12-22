@@ -28,14 +28,14 @@ RUN apt-get update \
     po-debconf \
     quilt \
     tcl-dev \
-    liblua5.2-dev \
+    liblua5.4-dev \
     git \
     nano \
     lua-filesystem \
     lua-json \
     lua-posix \
     lua-term \
-    lua5.2 \
+    lua5.4 \
     procps
     
 
