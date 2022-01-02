@@ -2,6 +2,8 @@
 
 # Get latest tags from upstream. Github UI is not enough
 git fetch upstream --tags 
+git push --tags
+
 VERSION=$(git describe --abbrev=0)
 echo "Version is $VERSION"
 
