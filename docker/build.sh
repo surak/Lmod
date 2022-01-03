@@ -4,7 +4,7 @@
 git fetch upstream --tags 
 git push --tags
 
-VERSION=$(git describe --abbrev=0)
+VERSION=$(git describe --tags `git rev-list --tags --max-count=1`)
 echo "Version is $VERSION"
 
 if head -n1 ../debian/changelog | grep $VERSION ; then
