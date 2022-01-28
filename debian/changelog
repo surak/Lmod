@@ -2,7 +2,7 @@ lmod (8.6.8) unstable; urgency=medium
 
   * Setting TAG_VERSION to 8.6.8
 
- -- Alexandre Strube <surak@surak.eti.br>  Fri, 28 Jan 2022 17:28:37 +0100
+ -- Alexandre Strube <surak@surak.eti.br>  Fri, 28 Jan 2022 17:29:00 +0100
 
 
 lmod (8.6.7) unstable; urgency=medium
