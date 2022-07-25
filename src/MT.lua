@@ -648,20 +648,7 @@ function M.have(self, sn, status)
    return ((status == "any") or (status == entry.status))
 end
 
-function M.haveUserName(self, mname, status)
-   local sn     = mname:sn()
-   local result = self:have(sn, status)
-   if (not result) then
-      return false
-   end
-   local userName = mname:userName()
-
-   return self:userName(sn) == userName or self:fullName(sn) == userName
-end
-
-function M.lookup_w_userName(self,userName)
-   -- Check if userName is a sn
-
+function M.find_possible_sn(self, userName)
    local sn_match = false
    local sn = userName
    while true do
@@ -673,6 +660,17 @@ function M.lookup_w_userName(self,userName)
       if (idx == nil) then break end
       sn = sn:sub(1,idx-1)
    end
+   if (not sn_match) then
+      sn = userName
+   end
+   return sn_match, sn
+end
+
+
+function M.lookup_w_userName(self,userName)
+   -- Check if userName is a sn
+
+   local sn_match, sn = self:find_possible_sn(userName)
 
    if (not sn_match) then return false end
 
@@ -1331,6 +1329,35 @@ function M.getMTfromFile(self,tt)
    dbg.fini("MT:getMTfromFile")
    return true
 end
+
+function M.extractModulesFiles(self)
+   local a = self:list("fullName","active")
+   local loadA = {}
+   local fileA = {}
+   local status = true
+   for i = 1,#a do
+      loadA[#loadA+1] = a[i].fullName
+      fileA[#fileA+1] = a[i].fn
+   end
+   local loadStr = nil
+   local fileStr = nil
+   if (next (loadA) ~= nil) then
+      loadStr = concatTbl(loadA,":")
+      fileStr = concatTbl(fileA,":")
+   end
+
+   local oldV = getenv("LOADEDMODULES") 
+   dbg.print{"RTM: oldV: ",oldV,", loadStr: ",loadStr,"\n"}
+
+   if (oldV == loadStr) then
+      status = false
+   elseif (oldV and not loadStr) then
+      loadStr = nil
+      fileStr = nil
+   end
+   return status, loadStr, fileStr
+end
+
 
 function M.setMpathRefCountT(self, refCountT)
    self.mpathRefCountT = refCountT

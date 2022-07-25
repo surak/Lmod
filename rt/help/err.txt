@@ -2,7 +2,7 @@
 step 1
 lua ProjectDIR/src/lmod.in.lua bash --regression_testing --version
 ===========================
-Modules based on Lua: Version 8.6  2021-12-06 17:19 -06:00
+Modules based on Lua: Version 8.7.6  2022-06-25 15:58 -05:00
     by Robert McLay mclay@tacc.utexas.edu
 ===========================
 step 2
@@ -22,7 +22,7 @@ Options:
   -t --terse                        Write out in machine readable format for commands: list, avail, spider, savelist
   --initial_load                    loading Lmod for first time in a user shell
   --latest                          Load latest (ignore default)
-  --ignore_cache                    Treat the cache file(s) as out-of-date
+  -I --ignore_cache                 Treat the cache file(s) as out-of-date
   --novice                          Turn off expert and quiet flag
   --raw                             Print modulefile in raw output when used with show
   -w twidth --width=twidth          Use this as max term width
@@ -32,6 +32,7 @@ Options:
   --dumpversion                     Dump version in a machine readable way and quit
   --check_syntax --checkSyntax      Checking module command syntax: do not load
   --config                          Report Lmod Configuration
+  --miniConfig                      Report Lmod Configuration differences
   --config_json                     Report Lmod Configuration in json format
   --mt                              Report Module Table State
   --timer                           report run times
@@ -103,7 +104,7 @@ Lmod Web Sites
   SourceForge:      https://lmod.sf.net
   TACC Homepage:    https://www.tacc.utexas.edu/research-development/tacc-projects/lmod
   To report a bug please read http://lmod.readthedocs.io/en/latest/075_bug_reporting.html
-Modules based on Lua: Version 8.6  2021-12-06 17:19 -06:00
+Modules based on Lua: Version 8.7.6  2022-06-25 15:58 -05:00
     by Robert McLay mclay@tacc.utexas.edu
 ===========================
 step 3
@@ -123,7 +124,7 @@ Options:
   -t --terse                        Write out in machine readable format for commands: list, avail, spider, savelist
   --initial_load                    loading Lmod for first time in a user shell
   --latest                          Load latest (ignore default)
-  --ignore_cache                    Treat the cache file(s) as out-of-date
+  -I --ignore_cache                 Treat the cache file(s) as out-of-date
   --novice                          Turn off expert and quiet flag
   --raw                             Print modulefile in raw output when used with show
   -w twidth --width=twidth          Use this as max term width
@@ -133,6 +134,7 @@ Options:
   --dumpversion                     Dump version in a machine readable way and quit
   --check_syntax --checkSyntax      Checking module command syntax: do not load
   --config                          Report Lmod Configuration
+  --miniConfig                      Report Lmod Configuration differences
   --config_json                     Report Lmod Configuration in json format
   --mt                              Report Module Table State
   --timer                           report run times
@@ -204,7 +206,7 @@ Lmod Web Sites
   SourceForge:      https://lmod.sf.net
   TACC Homepage:    https://www.tacc.utexas.edu/research-development/tacc-projects/lmod
   To report a bug please read http://lmod.readthedocs.io/en/latest/075_bug_reporting.html
-Modules based on Lua: Version 8.6  2021-12-06 17:19 -06:00
+Modules based on Lua: Version 8.7.6  2022-06-25 15:58 -05:00
     by Robert McLay mclay@tacc.utexas.edu
 ===========================
 step 4
@@ -224,7 +226,7 @@ Version 9
 step 5
 lua ProjectDIR/src/lmod.in.lua bash --regression_testing --config
 ===========================
-Modules based on Lua: Version 8.6  2021-12-06 17:19 -06:00
+Modules based on Lua: Version 8.7.6  2022-06-25 15:58 -05:00
     by Robert McLay mclay@tacc.utexas.edu
 Description                        Value
 Allow root to use Lmod             yes
@@ -238,6 +240,7 @@ Disable Same Name AutoSwap         no
 Display Extension w/ avail         yes
 Using dotfiles                     yes
 Allow duplicate paths              no
+Dynamic Spider Cache               yes
 Require Exact Match/no defaults    no
 Export the module command          yes
 Allow extended default             yes
@@ -271,6 +274,7 @@ Site Name                          <empty>
 Site Pkg location                  standard
 Ignore Cache                       no
 Cached loads                       no
+System Default Modules             <empty>
 System Name                        <empty>
 SYSHOST (cluster name)             <empty>
 TCL Version                        <N/A>
@@ -281,7 +285,8 @@ Tmod find first rule               no
 Tmod prepend PATH Rule             no
 Tracing                            no
 uname -a
-LMOD_PACKAGE_PATH  nil
+LMOD_PACKAGE_PATH            nil          <empty>
+LMOD_SYSTEM_DEFAULT_MODULES  __unknown__  <empty>
 Active RC file(s):
 ProjectDIR/src/../init/lmodrc.lua
  OutputDIR/.lmodrc.lua
@@ -394,6 +399,14 @@ propT = {
 }
 ===========================
 step 6
+lua ProjectDIR/src/lmod.in.lua bash --regression_testing --miniConfig
+===========================
+Modules based on Lua: Version 8.7.6  2022-06-25 15:58 -05:00
+    by Robert McLay mclay@tacc.utexas.edu
+LMOD_PACKAGE_PATH            nil          <empty>
+LMOD_SYSTEM_DEFAULT_MODULES  __unknown__  <empty>
+===========================
+step 7
 lua ProjectDIR/src/chkJson
 ===========================
 configT matches

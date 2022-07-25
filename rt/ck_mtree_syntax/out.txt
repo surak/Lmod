@@ -38,7 +38,7 @@ spiderT = {
           fn = "ProjectDIR/rt/ck_mtree_syntax/mf/A/.version",
           fullName = "A/.version",
           mpath = "ProjectDIR/rt/ck_mtree_syntax/mf",
-          value = "2.0",
+          value = false,
         },
       },
       defaultT = {
@@ -113,10 +113,10 @@ spiderT = {
       dirT = {},
       fileT = {
         ["acme/1.0"] = {
-          Category = "system ",
-          Description = "This is a descript ",
-          Name = "acme ",
-          Version = "1.0 ",
+          Category = "system",
+          Description = "This is a descript",
+          Name = "acme",
+          Version = "1.0",
           canonical = "1.0",
           fn = "ProjectDIR/rt/ck_mtree_syntax/mf/acme/1.0",
           help = [[This is the help message for the acme 1.0 module
@@ -126,7 +126,7 @@ And even more help
           pV = "000000001.*zfinal",
           wV = "000000001.*zfinal",
           whatis = {
-            "Name: acme ", "Version: 1.0 ", "Category: system ", "Description: This is a descript ",
+            "Name: acme", "Version: 1.0", "Category: system", "Description: This is a descript",
           },
         },
       },
@@ -303,6 +303,9 @@ Version 5.4.4
           luaExt = 6,
           mpath = "ProjectDIR/rt/ck_mtree_syntax/mf",
           pV = "000000005.000000004.000000004.*zfinal",
+          pathA = {
+            ["/home1/apps/intel19/impi19_0/vasp/5.4.4/bin"] = 1,
+          },
           wV = "000000005.000000004.000000004.*zfinal",
           whatis = {
             "Version: 5.4.4", "Category: application, chemistry", "Keywords: Chemistry, Density Functional Theory, Molecular Dynamics", "URL:https://www.vasp.at/", "Description: Vienna Ab-Initio Simulation Package",

@@ -2,7 +2,7 @@
 step 1
 lua ProjectDIR/src/lmod.in.lua bash --regression_testing --version
 ===========================
-Modules based on Lua: Version 8.6.2  2021-12-21 19:39 -06:00
+Modules based on Lua: Version 8.6.16  2022-03-22 14:19 -05:00
     by Robert McLay mclay@tacc.utexas.edu
 ===========================
 step 2
@@ -46,6 +46,22 @@ set_shell_function("banner"," \
 set_shell_function("fooFunc"," \
     echo \"arg1: $1\"\
 ","")
+set_shell_function("junk"," \
+    if [ -n \"${ZSH_VERSION:-}\" ]; then\
+        \\echo \"junk\";\
+    fi\
+","")
+set_shell_function("my_help"," \
+    echo \"do not forget \\\"foo\\\"\"\
+","")
+set_shell_function("save_args"," \
+    for arg in \"$@\";\
+    do\
+        printf \"%s\\n\" \"$arg\" | sed -e \"s/'/'\\\\\\\\''/g\" -e \"1s/^/'/\" -e \"\\$s/\\$/' \\\\\\\\/\";\
+    done;\
+    echo \" \"\
+","")
+complete("bash","xyz123","-F _xyz123")
 setenv("MY_NAME","unknown")
  source_sh("bash","ProjectDIR/rt/sh_to_modulefile/second.sh arg1")
 setenv("SECOND","FOO_BAR")
@@ -73,6 +89,22 @@ set_shell_function("banner"," \
 set_shell_function("fooFunc"," \
     echo \"arg1: $1\"\
 ","")
+set_shell_function("junk"," \
+    if [ -n \"${ZSH_VERSION:-}\" ]; then\
+        \\echo \"junk\";\
+    fi\
+","")
+set_shell_function("my_help"," \
+    echo \"do not forget \\\"foo\\\"\"\
+","")
+set_shell_function("save_args"," \
+    for arg in \"$@\";\
+    do\
+        printf \"%s\\n\" \"$arg\" | sed -e \"s/'/'\\\\\\\\''/g\" -e \"1s/^/'/\" -e \"\\$s/\\$/' \\\\\\\\/\";\
+    done;\
+    echo \" \"\
+","")
+complete("bash","xyz123","-F _xyz123")
 setenv("MY_NAME","tstScript.sh")
  source_sh("bash","ProjectDIR/rt/sh_to_modulefile/second.sh arg1")
 setenv("SECOND","FOO_BAR")
@@ -113,7 +145,19 @@ _ModuleTable_ = {
     echo \\"${RED}${str}${NONE}\\"\\
 ","")]], [[set_shell_function("fooFunc"," \\
     echo \\"arg1: $1\\"\\
-","")]],
+","")]], [[set_shell_function("junk"," \\
+    if [ -n \\"${ZSH_VERSION:-}\\" ]; then\\
+        \\\\echo \\"junk\\";\\
+    fi\\
+","")]], [[set_shell_function("my_help"," \\
+    echo \\"do not forget \\\\\\"foo\\\\\\"\\"\\
+","")]], [[set_shell_function("save_args"," \\
+    for arg in \\"$@\\";\\
+    do\\
+        printf \\"%s\\\\n\\" \\"$arg\\" | sed -e \\"s/'/'\\\\\\\\\\\\\\\\''/g\\" -e \\"1s/^/'/\\" -e \\"\\\\$s/\\\\$/' \\\\\\\\\\\\\\\\/\\";\\
+    done;\\
+    echo \\" \\"\\
+","")]], "complete(\"bash\",\"XyZ123\",\"-F _xyz123\")",
         },
       },
       propT = {},
@@ -147,20 +191,16 @@ lua ProjectDIR/src/lmod.in.lua bash --regression_testing load wrapperSh/1.0
 ===========================
 ===========================
 step 16
-type banner
-===========================
-===========================
-step 17
 lua ProjectDIR/src/lmod.in.lua bash --regression_testing save
 ===========================
 Saved current collection of modules to: "default"
 ===========================
-step 18
+step 17
 lua ProjectDIR/src/lmod.in.lua bash --regression_testing restore
 ===========================
 Restoring modules from user's default
 ===========================
-step 19
+step 18
 lua ProjectDIR/src/lmod.in.lua bash --regression_testing --mt
 ===========================
 _ModuleTable_ = {
@@ -186,7 +226,19 @@ _ModuleTable_ = {
     echo \\"${RED}${str}${NONE}\\"\\
 ","")]], [[set_shell_function("fooFunc"," \\
     echo \\"arg1: $1\\"\\
-","")]],
+","")]], [[set_shell_function("junk"," \\
+    if [ -n \\"${ZSH_VERSION:-}\\" ]; then\\
+        \\\\echo \\"junk\\";\\
+    fi\\
+","")]], [[set_shell_function("my_help"," \\
+    echo \\"do not forget \\\\\\"foo\\\\\\"\\"\\
+","")]], [[set_shell_function("save_args"," \\
+    for arg in \\"$@\\";\\
+    do\\
+        printf \\"%s\\\\n\\" \\"$arg\\" | sed -e \\"s/'/'\\\\\\\\\\\\\\\\''/g\\" -e \\"1s/^/'/\\" -e \\"\\\\$s/\\\\$/' \\\\\\\\\\\\\\\\/\\";\\
+    done;\\
+    echo \\" \\"\\
+","")]], "complete(\"bash\",\"XyZ123\",\"-F _xyz123\")",
         },
       },
       propT = {},
@@ -202,15 +254,11 @@ _ModuleTable_ = {
   systemBaseMPATH = "ProjectDIR/rt/sh_to_modulefile/mf",
 }
 ===========================
-step 20
-type banner
-===========================
-===========================
-step 21
+step 19
 lua ProjectDIR/src/lmod.in.lua bash --regression_testing load A
 ===========================
 ===========================
-step 22
+step 20
 lua ProjectDIR/src/lmod.in.lua bash --regression_testing list
 ===========================
 Currently Loaded Modules:

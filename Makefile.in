@@ -44,6 +44,7 @@ SITE_MSG_FILE             := @SITE_MSG_FILE@
 SITE_NAME                 := @SITE_NAME@
 SUPPORT_KSH               := @SUPPORT_KSH@
 SYSHOST                   := @SYSHOST@
+DYNAMIC_SPIDER_CACHE      := @DYNAMIC_SPIDER_CACHE@
 SILENCE_SHELL_DEBUGGING   := @SILENCE_SHELL_DEBUGGING@
 SYS_LD_LIB_PATH           := @SYS_LD_LIB_PATH@
 SYS_LD_PRELOAD            := @SYS_LD_PRELOAD@
@@ -83,7 +84,6 @@ VERSION_SRC               := $(srcdir)/src/Version.lua
 LUA_INCLUDE               := @LUA_INCLUDE@
 UPDATE_SYSTEM_FN          := @UPDATE_SYSTEM_FN@
 GIT_PROG                  := @PATH_TO_GIT@
-GIT_VERSION               := $(shell if [ -n "$(GIT_PROG)" -a -d .git ]; then lmodV=`git describe --always`; echo "($$lmodV)"; else echo "($(version))"; fi)
 PKG                       := $(MY_PKG_PACKAGE)
 PKGV                      := $(MY_PACKAGE)
 LIB                       := $(MY_PACKAGE)/lib
@@ -113,7 +113,9 @@ ifeq ($(LUA_INCLUDE),no)
 else
    LUA_INCLUDE := -I$(LUA_INCLUDE)
 endif
-
+ifeq ($(GIT_VERSION),)
+  GIT_VERSION             := $(shell if [ -n "$(GIT_PROG)" -a -d $(srcdir)/.git ]; then lmodV=`git describe --always;`; echo "$$lmodV"; else echo "$(version)"; fi)
+endif
 
 
 DIRLIST                   := $(DESTDIR)$(LIBEXEC) $(DESTDIR)$(TOOLS)      $(DESTDIR)$(SETTARG)        \
@@ -226,12 +228,7 @@ install: pre-install  zsh_tab_funcs fish_tab_funcs
 
 echo:
 	@echo Version: $(version)
-	@echo IGNORE_DIRS: $(IGNORE_DIRS)
-	@echo LUA_PATH: $$LUA_PATH
-	@echo L_PATH: "$(L_PATH)"
-	@echo VDATE: $(VDATE)
-	@echo DIRLIST: $(DIRLIST)
-
+	@echo GIT_VERSION: $(GIT_VERSION)
 man_pages:
 	-$(PATH_TO_LUA) $(srcdir)/src/lmod.in.lua bash --help >/dev/null 2> $(DESTDIR)$(MAN_PAGES)/module.1
 
@@ -253,7 +250,7 @@ __installMe:
 	        -e 's|@use_dot_files@|$(USE_DOT_FILES)|g'                         \
 	        -e 's|@lang@|$(LMOD_OVERRIDE_LANG)|g'                             \
 	        -e 's|@site_msg_file@|$(SITE_MSG_FILE)|g'                         \
-	        -e 's|@git@|$(GIT_VERSION)|g'                                     \
+	        -e 's|@git@|($(GIT_VERSION))|g'                                   \
 	        -e 's|--@ignore_dirs@--|$(IGNORE_DIRS)|g'                         \
 	        -e 's|@sys_lua_path@|$(SYS_LUA_PATH)|g'                           \
 	        -e 's|@hidden_italic@|$(LMOD_HIDDEN_ITALIC)|g'                    \
@@ -263,6 +260,7 @@ __installMe:
 	        -e 's|@path_to_lmod@|$(LIBEXEC)/lmod|g'                           \
 	        -e 's|@have_lua_term@|$(HAVE_LUA_TERM)|g'                         \
 	        -e 's|@silence_shell_debugging@|$(SILENCE_SHELL_DEBUGGING)|g'     \
+	        -e 's|@dynamic_spider_cache@|$(DYNAMIC_SPIDER_CACHE)|g'           \
 	        -e 's|@fast_tcl_interp@|$(FAST_TCL_INTERP)|g'                     \
 	        -e 's|@settarg_cmd@|$(SETTARG_CMD)|g'                             \
 	        -e 's|@lmod_config_dir@|$(LMOD_CONFIG_DIR)|g'                     \
@@ -321,22 +319,22 @@ generate_doc:
 	ldoc .
 
 shell_init: $(SHELL_INIT)
-	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(INIT)    __installMe
+	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(INIT) GIT_VERSION=$(GIT_VERSION) __installMe
 
 lmodrc_init: $(LMODRC_INIT)
-	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(INIT)    __installMe
+	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(INIT)  GIT_VERSION=$(GIT_VERSION)  __installMe
 
 messageFns: $(MSGFNs)
-	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(MESSAGEDIR) __installMe
+	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(MESSAGEDIR) GIT_VERSION=$(GIT_VERSION) __installMe
 
 i18n: $(I18N_SRC)
-	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(I18N) __installMe
+	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(I18N) GIT_VERSION=$(GIT_VERSION) __installMe
 
 startup: $(STARTUP)
-	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(INIT)    __installMe
+	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(INIT) GIT_VERSION=$(GIT_VERSION)   __installMe
 
 other_tools: $(ComputeHashSum) $(STANDALONE_PRGM)
-	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(LIBEXEC) __installMe
+	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(LIBEXEC) GIT_VERSION=$(GIT_VERSION) __installMe
 
 spiderCacheSupport: $(PKG_LFS) $(PKG_T2L) Inst_Tools libexec
 	$(spiderCacheSupportCMD) --cacheDirs "$(SPIDER_CACHE_DIRS)"          \
@@ -345,14 +343,14 @@ spiderCacheSupport: $(PKG_LFS) $(PKG_T2L) Inst_Tools libexec
                                  >> $(DESTDIR)$(INIT)/lmodrc.lua;
 
 src/computeHashSum: $(ComputeHashSum)
-	$(MAKE) FILELIST="$^" DIRLOC="$(prefix)/src"                __installMe
+	$(MAKE) FILELIST="$^" DIRLOC="$(prefix)/src"  GIT_VERSION=$(GIT_VERSION) __installMe
 	chmod +x $@
 
 tcl2lua:
 	if [ -d $(srcdir)/pkgs/tcl2lua ]; then                             \
            $(MAKE) -C $(srcdir)/pkgs/tcl2lua  LUA_INC=$(LUA_INCLUDE)       \
 	        TCL_INCLUDE=$(TCL_INCLUDE) TCL_LIBS=$(TCL_LIBS)            \
-                LIB=$(DESTDIR)$(LIB) LIBS=@LIBS@ CC=$(CC)                  \
+                LIB=$(DESTDIR)$(LIB) LIBS=@LIBS@ CC="$(CC)"                \
                 SHARE=$(DESTDIR)$(LIBEXEC)                                 \
                 install;                                                   \
         fi
@@ -360,13 +358,13 @@ tcl2lua:
 lfs:
 	if [ -d $(srcdir)/pkgs/luafilesystem ]; then                       \
            $(MAKE) -C $(srcdir)/pkgs/luafilesystem  LUA_INC=$(LUA_INCLUDE) \
-                LIB=$(DESTDIR)$(LIB) SHARE=$(DESTDIR)$(LIBEXEC) CC=$(CC)   \
+                LIB=$(DESTDIR)$(LIB) SHARE=$(DESTDIR)$(LIBEXEC) CC="$(CC)" \
                 install;                                                   \
         fi
 pkgs:
 	if [ -d $(srcdir)/pkgs ]; then                                     \
            $(MAKE) -C $(srcdir)/pkgs LUA_INC=$(LUA_INCLUDE)                \
-               LIB=$(DESTDIR)$(LIB) SHARE=$(DESTDIR)$(LIBEXEC) CC=$(CC)    \
+               LIB=$(DESTDIR)$(LIB) SHARE=$(DESTDIR)$(LIBEXEC) CC="$(CC)"  \
                install;                                                    \
         fi
 
@@ -385,7 +383,7 @@ zsh_tab_funcs: $(ZSH_FUNCS) $(KSH_FUNCS)
 	fi
 
 ksh_funcs: $(KSH_FUNCS)
-	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(INIT_KSH_FUNCS) __installMe
+	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(INIT_KSH_FUNCS) GIT_VERSION=$(GIT_VERSION) __installMe
 
 fish_tab_funcs: $(FISH_FUNCS)
 	cp $^ $(DESTDIR)$(FISH_TAB) 2>/dev/null
@@ -513,20 +511,20 @@ luachk:
 	if [ "$$?" -eq 0 ]; then rm lmod.check.txt; fi
 
 libexec:  $(lua_code)
-	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(LIBEXEC) __installMe
+	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(LIBEXEC) GIT_VERSION=$(GIT_VERSION) __installMe
 
 Inst_Tools: $(TOOL_SRC)
-	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(TOOLS) __installMe
+	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(TOOLS) GIT_VERSION=$(GIT_VERSION) __installMe
 
 Inst_Shells: $(srcdir)/shells/*.lua
-	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(SHELLS) __installMe
+	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(SHELLS) GIT_VERSION=$(GIT_VERSION) __installMe
 
 Inst_Settarg: $(SETTARG_SOURCE)
-	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(SETTARG) __installMe
+	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(SETTARG) GIT_VERSION=$(GIT_VERSION) __installMe
 
 
 Inst_Lmod_MF: $(LMOD_MF_SOURCE)
-	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(LMOD_MF) __installMe
+	$(MAKE) FILELIST="$^" DIRLOC=$(DESTDIR)$(LMOD_MF) GIT_VERSION=$(GIT_VERSION) __installMe
 
 clean:
 	$(RM) config.log *.o
@@ -562,8 +560,6 @@ world_update:
 	    TOKEN=$$(cat ~/c/lmod_github_token.txt);                                   \
 	    curl --user rtmclay:token -H "Authorization: token $$TOKEN" -X POST        \
 	         --data @/tmp/json_$$pid $$URL;                                        \
-	    git push        sf     $$branchName;                                       \
-	    git push --tags sf     $$branchName;                                       \
 	fi;                                                                            \
 	rm -f /tmp/json_$$pid /tmp/git_st_$$$$;
 

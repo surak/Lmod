@@ -181,13 +181,13 @@ local function l_extract(self, nodups)
       end
    end
 
-   self.nodups = nodups
-   self.value  = myValue
-   self.type   = 'path'
-   self.tbl    = pathTbl
-   self.imin   = imin
-   self.imax   = imax
-   self.export = true
+   self.nodups    = nodups
+   self.value     = myValue
+   self.type      = 'path'
+   self.tbl       = pathTbl
+   self.imin      = imin
+   self.imax      = imax
+   self.export    = true
 end
 
 --------------------------------------------------------------------------
@@ -281,16 +281,7 @@ function M.remove(self, value, where, priority, nodups, force)
 
    local tracing  = cosmic:value("LMOD_TRACING")
    if (tracing == "yes" and self.name == ModulePath ) then
-      local shell      = _G.Shell
-      local frameStk   = require("FrameStk"):singleton()
-      local stackDepth = frameStk:stackDepth()
-      local indent     = ("  "):rep(stackDepth+1)
-      local b          = {}
-      b[#b + 1]        = indent
-      b[#b + 1]        = "Removing: "
-      b[#b + 1]        = value
-      b[#b + 1]        = " from MODULEPATH\n"
-      shell:echo(concatTbl(b,""))
+      tracing_msg{"Removing: ", value, " from MODULEPATH"}
    end
 
    for i = 1, #pathA do
@@ -383,20 +374,10 @@ function M.prepend(self, value, nodups, priority)
 
    local tracing  = cosmic:value("LMOD_TRACING")
    if (tracing == "yes" and name == ModulePath ) then
-      local shell      = _G.Shell
-      local frameStk   = require("FrameStk"):singleton()
-      local stackDepth = frameStk:stackDepth()
-      local indent     = ("  "):rep(stackDepth+1)
-      local b          = {}
-      b[#b + 1]        = indent
-      b[#b + 1]        = "Prepending: "
-      b[#b + 1]        = value
-      b[#b + 1]        = " to MODULEPATH\n"
-      shell:echo(concatTbl(b,""))
+      tracing_msg{"Prepending: ", value, " to MODULEPATH"}
    end
 
    local imin = min(self.imin, 0)
-   local name = self.name
    for i = is, ie, iskip do
       local path = pathA[i]
       imin       = imin - 1
@@ -440,20 +421,12 @@ function M.append(self, value, nodups, priority)
 
    local tracing  = cosmic:value("LMOD_TRACING")
    if (tracing == "yes" and name == ModulePath ) then
-      local shell      = _G.Shell
-      local frameStk   = require("FrameStk"):singleton()
-      local stackDepth = frameStk:stackDepth()
-      local indent     = ("  "):rep(stackDepth+1)
-      local b          = {}
-      b[#b + 1]        = indent
-      b[#b + 1]        = "Appending: "
-      b[#b + 1]        = value
-      b[#b + 1]        = " to MODULEPATH\n"
-      shell:echo(concatTbl(b,""))
+      tracing_msg{"Appending: ", value, " to MODULEPATH"}
    end
 
    local tbl  = self.tbl
    local imax = self.imax
+
    for i = 1, #pathA do
       local path = pathA[i]
       if (name == "MODULEPATH") then
@@ -471,6 +444,18 @@ function M.append(self, value, nodups, priority)
    setenv_posix(name, value, true)
    l_chkMP(name, value, adding)
 end
+
+function M.complete(self, args)
+   if (not args) then value = false end
+   self.type      = "complete"
+   self.value     = args
+end
+
+function M.uncomplete(self)
+   self.type      = "complete"
+   self.value     = false
+end
+
 
 --------------------------------------------------------------------------
 -- Set the environment variable to *value*

@@ -113,6 +113,20 @@ local function l_compareRequestedLoadsWithActual()
    return aa, bb
 end
 
+local function l_check_for_valid_name(kind, name)
+   local l    = name:len()
+   local i, j = name:find("^[a-zA-Z_][a-zA-Z0-9_]*")
+   if (j ~= l) then
+      LmodError{msg="e_BadName",kind=kind, name=name}
+   end
+end
+
+local function l_check_for_valid_alias_name(kind, name)
+   if (name:find("[ \t]")) then
+      LmodError{msg="e_BadAlias",kind=kind, name=name}
+   end
+end
+
 local function l_createStackName(name)
    return "__LMOD_STACK_" .. name
 end
@@ -292,6 +306,8 @@ function M.setenv(self, name, value, respect)
    dbg.start{"MasterControl:setenv(\"",name,"\", \"",value,"\", \"",
               respect,"\")"}
 
+   l_check_for_valid_name("setenv",name)
+
    if (value == nil) then
       LmodError{msg="e_Missing_Value", func = "setenv", name = name}
    end
@@ -321,6 +337,8 @@ end
 function M.unsetenv(self, name, value, respect)
    name = name:trim()
    dbg.start{"MasterControl:unsetenv(\"",name,"\", \"",value,"\")"}
+
+   l_check_for_valid_name("unsetenv",name)
 
    if (respect and getenv(name) ~= value) then
       dbg.print{"Respecting old value"}
@@ -356,6 +374,7 @@ function M.pushenv(self, name, value)
    name = name:trim()
    dbg.start{"MasterControl:pushenv(\"",name,"\", \"",value,"\")"}
 
+   l_check_for_valid_name("pushenv",name)
    ----------------------------------------------------------------
    -- If name exists in the env and the stack version of the name
    -- doesn't exist then use the name's value as the initial value
@@ -408,6 +427,8 @@ end
 function M.popenv(self, name, value)
    name = name:trim()
    dbg.start{"MasterControl:popenv(\"",name,"\", \"",value,"\")"}
+
+   l_check_for_valid_name("popenv",name)
 
    local stackName = l_createStackName(name)
    local frameStk = FrameStk:singleton()
@@ -462,6 +483,8 @@ function M.prepend_path(self, t)
              "\", delim=\"",delim,"\", nodups=\"",nodups,
              "\", priority=",priority,"\n"}
 
+   l_check_for_valid_name("prepend_path",name)
+
    if (varT[name] == nil) then
       varT[name] = Var:new(name, nil, nodups, delim)
    end
@@ -490,6 +513,8 @@ function M.append_path(self, t)
              "\", delim=\"",delim,"\", nodups=\"",nodups,
              "\", priority=",priority,
              "}"}
+
+   l_check_for_valid_name("append_path",name)
 
    -- Do not allow dups on MODULEPATH like env vars.
    nodups = name == ModulePath or nodups
@@ -523,6 +548,8 @@ function M.remove_path(self, t)
              ", where=",where,
              ", force=",force,
              "}"}
+
+   l_check_for_valid_name("remove_path",name)
 
    -- Do not allow dups on MODULEPATH like env vars.
    nodups = (name == ModulePath) or nodups
@@ -565,6 +592,9 @@ function M.set_alias(self, name, value)
    name = name:trim()
    dbg.start{"MasterControl:set_alias(\"",name,"\", \"",value,"\")"}
 
+   l_check_for_valid_alias_name("set_alias",name)
+
+
    local frameStk = FrameStk:singleton()
    local varT     = frameStk:varT()
 
@@ -605,6 +635,8 @@ function M.set_shell_function(self, name, bash_function, csh_function)
    dbg.start{"MasterControl:set_shell_function(\"",name,"\", \"",bash_function,"\"",
              "\", \"",csh_function,"\""}
 
+
+   l_check_for_valid_alias_name("set_shell_function",name)
 
    local frameStk = FrameStk:singleton()
    local varT     = frameStk:varT()
@@ -861,7 +893,7 @@ function M.dependencyCk(self,mA)
    local fullName = frameStk:fullName()
    for i = 1,#mA do
       local mname = mA[i]
-      if (not mt:haveUserName(mname,"active")) then
+      if (not mname:isloaded() ) then
          local a = s_missDepT[mname:userName()] or {}
          a[#a+1] = fullName
          s_missDepT[mname:userName()] = a
@@ -1313,6 +1345,8 @@ function M.family(self, name)
    local masterTbl = masterTbl()
    local auto_swap = cosmic:value("LMOD_AUTO_SWAP")
 
+   l_check_for_valid_name("family",name)
+
    local oldName = mt:getfamily(name)
    if (oldName ~= nil and oldName ~= sn and not expert() ) then
       if (auto_swap ~= "no") then
@@ -1422,6 +1456,7 @@ function M.add_property(self, name, value)
    local frameStk  = FrameStk:singleton()
    local sn        = frameStk:sn()
    local mt        = frameStk:mt()
+   l_check_for_valid_name("add_property",name)
    mt:add_property(sn, name:trim(), value)
 end
 
@@ -1435,6 +1470,7 @@ function M.remove_property(self, name, value)
    local frameStk  = FrameStk:singleton()
    local sn        = frameStk:sn()
    local mt        = frameStk:mt()
+   l_check_for_valid_name("remove_property",name)
    mt:remove_property(sn, name:trim(), value)
 end
 
@@ -1467,7 +1503,7 @@ function M.inherit(self)
 end
 
 function M.source_sh(self, shellName, script)
-   dbg.start{"MasterControl:source_sh(shellName: \"",shellName,", script: \"",script,"\")"}
+   dbg.start{"MasterControl:source_sh(shellName: \"",shellName,"\", script: \"",script,"\")"}
    local frameStk     = FrameStk:singleton()
    local sn           = frameStk:sn()
    local mt           = frameStk:mt()
@@ -1492,7 +1528,7 @@ function M.source_sh(self, shellName, script)
 end
 
 function M.un_source_sh(self, shellName, script)
-   dbg.start{"MasterControl:un_source_sh(shellName: \"",shellName,", script: \"",script,"\")"}
+   dbg.start{"MasterControl:un_source_sh(shellName: \"",shellName,"\", script: \"",script,"\")"}
    local frameStk    = FrameStk:singleton()
    local sn          = frameStk:sn()
    local mt          = frameStk:mt()
@@ -1505,6 +1541,38 @@ function M.un_source_sh(self, shellName, script)
    end
    dbg.fini("MasterControl:un_source_sh")
 end
+
+function M.complete(self, shellName, name, args)
+   dbg.start{"MasterControl:complete(shellName: \"",shellName,"\", name: \"",name,"\", args: \"",args,"\""}
+   if (myShellName() ~= shellName) then
+      dbg.fini("MasterControl:complete")
+      return
+   end
+   
+   local varT     = FrameStk:singleton():varT()
+   if (varT[name] == nil) then
+      varT[name] = Var:new(name)
+   end
+   varT[name]:complete(args)
+   dbg.fini("MasterControl:complete")
+end
+
+function M.uncomplete(self, shellName, name, args)
+   dbg.start{"MasterControl:uncomplete(shellName: \"",shellName,"\", name: \"",name,"\", args: \"",args,"\""}
+   if (myShellName() ~= shellName) then
+      dbg.fini("MasterControl:complete")
+      return
+   end
+   local varT     = FrameStk:singleton():varT()
+   if (varT[name] == nil) then
+      varT[name] = Var:new(name)
+   end
+   varT[name]:uncomplete()
+
+   dbg.fini("MasterControl:uncomplete")
+end
+
+
 
 function M.color_banner(self,color)
    if (quiet()) then
@@ -1576,6 +1644,10 @@ end
    
 function M.missing_module(self,userName, showName)
    s_missingModuleT[userName] = showName
+end
+
+function M.haveDynamicMPATH(self)
+   -- This function is non-empty when in Spider mode only
 end
 
 return M

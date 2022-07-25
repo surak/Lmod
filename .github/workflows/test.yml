@@ -37,19 +37,54 @@ jobs:
          echo "$PWD/Hermes/bin" >> $GITHUB_PATH
          cd -
       - name: Run tests
-        run: tm 
-      - name: show output of failed tests
+        run: tm
+      - name: show output of failed Lmod tests
         if: ${{ failure() }}
         run: |
-         # diff stdout/stderr for all tests in case of failure
+         set +e
          for dir in $(ls -pd rt/* | grep '/$'); do
-           echo ">>>> ${dir}/err.txt"
-           diff -c ${dir}t1/*/_err.left ${dir}/t1/*/_err.right || echo
-           echo ">>>> ${dir}/out.txt"
-           diff -c ${dir}/out.txt ${dir}/t1/*/out.txt || echo
+           diff -c ${dir}t1/*/_err.left ${dir}/t1/*/_err.right > /dev/null 2>&1
+           if [ $? -ne 0 ]; then
+             echo ">>>> ${dir}/err.txt"
+             diff -c ${dir}t1/*/_err.left ${dir}/t1/*/_err.right || echo
+             echo ">>>> ${dir}/out.txt"
+             diff -c ${dir}/out.txt ${dir}/t1/*/out.txt || echo
+             echo ">>>> ${dir}/t1.txt"
+             cat ${dir}t1/*/t1.log
+           fi
          done
-      - name: run busted tests
+      - name: Lmod_test_suite
         run: |
-          PROJDIR=`pwd` busted --verbose -m "./src/?.lua;./tools/?.lua;./tools/?/init.lua"
-          
-        
+         set -e
+         mkdir b0
+         cd b0
+         ../configure --prefix=/tmp
+         make install
+         sudo mkdir -p /etc/profile.d
+         sudo cp /tmp/lmod/lmod/init/profile /etc/profile.d/z00_lmod.sh
+         cd -
+         cd /tmp
+         git clone https://github.com/rtmclay/Lmod_test_suite.git
+         cd -
+         cd /tmp/Lmod_test_suite
+         sudo cp z98_StdEnv.sh /etc/profile.d
+         tm -k normal
+      - name: show output of failed suite tests
+        if: ${{ failure() }}
+        run: |
+         cd /tmp/Lmod_test_suite
+         set +e
+         for dir in $(ls -pd rt/* | grep '/$'); do
+           diff -c ${dir}t1/*/_err.left ${dir}/t1/*/_err.right > /dev/null 2>&1
+           if [ $? -ne 0 ]; then
+             echo ">>>> ${dir}/err.txt"
+             diff -c ${dir}t1/*/_err.left ${dir}/t1/*/_err.right || echo
+             echo ">>>> ${dir}/_err.left (gold)"
+             cat ${dir}t1/*/_err.left
+             echo ">>>> ${dir}/_err.right"
+             cat ${dir}t1/*/_err.right
+             echo ">>>> ${dir}/t1.txt"
+             cat ${dir}t1/*/t1.log
+           fi
+         done
+

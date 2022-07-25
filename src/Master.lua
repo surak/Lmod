@@ -310,14 +310,7 @@ function M.load(self, mA)
             dbg.print{"i: ",i,", stackDepth: ", frameStk:stackDepth(),"\n"}
             mcp:pushModule(mname)
             if (tracing == "yes") then
-               local stackDepth = frameStk:stackDepth()
-               local indent     = ("  "):rep(stackDepth+1)
-               local b          = {}
-               b[#b + 1]        = indent
-               b[#b + 1]        = "Pushing "
-               b[#b + 1]        = userName
-               b[#b + 1]        = " on moduleQ\n"
-               shell:echo(concatTbl(b,""))
+               tracing_msg{"Pushing ", userName, " on moduleQ"}
             end
             break
          end
@@ -327,23 +320,15 @@ function M.load(self, mA)
          local loaded     = false
 
          if (tracing == "yes") then
-            local stackDepth = frameStk:stackDepth()
             local use_cache  = (not masterTbl.terse) or (cosmic:value("LMOD_CACHED_LOADS") ~= "no")
             local moduleA    = ModuleA:singleton{spider_cache=use_cache}
             local isNVV      = moduleA:isNVV()
-            local indent     = ("  "):rep(stackDepth+1)
-            local b          = {}
             TraceCounter     = TraceCounter + 1
-            b[#b + 1]        = indent
-            b[#b + 1]        = "(" .. tostring(TraceCounter) .. ")"
-            b[#b + 1]        = "(" .. tostring(ReloadAllCntr) .. ")"
-            b[#b + 1]        = "Loading: "
-            b[#b + 1]        = userName
-            b[#b + 1]        = " (fn: "
-            b[#b + 1]        = fn or "nil"
-            b[#b + 1]        = isNVV and ", using Find-First" or ", using Find-Best"
-            b[#b + 1]        = ")\n"
-            shell:echo(concatTbl(b,""))
+            tracing_msg{"(" .. tostring(TraceCounter) .. ")",
+                        "(" .. tostring(ReloadAllCntr) .. ")",
+                        "Loading: ", userName, " (fn: ", fn or "nil",
+                        isNVV and ", using Find-First" or ", using Find-Best",
+                        ")" }
          end
 
          dbg.print{"Master:load i: ",i," sn: ",sn," fn: ",fn,"\n"}
@@ -394,7 +379,7 @@ function M.load(self, mA)
                mt:setStatus(sn, "active")
                hook.apply("load",{fn = mname:fn(), modFullName = mname:fullName(), mname = mname})
                dbg.print{"Marking ",fullName," as active and loaded\n"}
-               l_registerLoaded(fullName, fn)
+               --l_registerLoaded(fullName, fn)
             end
             frameStk:pop()
             loaded = true
@@ -497,21 +482,11 @@ function M.unload(self,mA)
       local fn       = mname:fn()
       local status   = mt:status(sn)
       if (tracing == "yes") then
-         local stackDepth = frameStk:stackDepth()
-         local indent     = ("  "):rep(stackDepth+1)
-         local b          = {}
          TraceCounter     = TraceCounter + 1
-         b[#b + 1]        = indent
-         b[#b + 1]        = "(" .. tostring(TraceCounter) .. ")"
-         b[#b + 1]        = "(" .. tostring(ReloadAllCntr) .. ")"
-         b[#b + 1]        = "Unloading: "
-         b[#b + 1]        = userName
-         b[#b + 1]        = " (status: "
-         b[#b + 1]        = status
-         b[#b + 1]        = ") (fn: "
-         b[#b + 1]        = fn or "nil"
-         b[#b + 1]        = ")\n"
-         shell:echo(concatTbl(b,""))
+         tracing_msg{"(" .. tostring(TraceCounter) .. ")",
+                     "(" .. tostring(ReloadAllCntr) .. ")",
+                     "Unloading: ", userName, " (status: ",
+                     status, ") (fn: ", fn or "nil", ")" }
       end
 
       dbg.print{"Trying to unload: ", userName, " sn: ", sn,"\n"}
@@ -519,7 +494,7 @@ function M.unload(self,mA)
       if (mt:have(sn,"inactive")) then
          dbg.print{"Removing inactive module: ", userName, "\n"}
          mt:remove(sn)
-         l_registerUnloaded(mt:fullName(sn), mt:fn(sn))
+         --l_registerUnloaded(mt:fullName(sn), mt:fn(sn))
          a[#a + 1] = true
       elseif (mt:have(sn,"active")) then
          dbg.print{"Master:unload: \"",userName,"\" from file: \"",fn,"\"\n"}
@@ -537,12 +512,16 @@ function M.unload(self,mA)
          if (status) then
             mt = frameStk:mt()
             mt:remove(sn)
-            l_registerUnloaded(fullName, fn)
+            --l_registerUnloaded(fullName, fn)
             hook.apply("unload",{fn = mname:fn(), modFullName = mname:fullName()})
          end
          frameStk:pop()
          a[#a+1] = status
       else
+         frameStk = FrameStk:singleton()
+         if (frameStk:stackDepth() == 0 and not purgeFlg()) then
+            LmodMessage{msg="m_Unload_unknown", modName = userName}
+         end
          a[#a+1] = false
       end
    end
@@ -583,20 +562,12 @@ function M.reloadAll(self, force_update)
    local mA       = {}
 
    if (tracing == "yes") then
-      local stackDepth = frameStk:stackDepth()
-      local indent     = ("  "):rep(stackDepth+1)
       local nameA      = {}
       for i = 1, #a do
          nameA[#nameA + 1 ] = a[i].userName
       end
-      local b          = {}
-      b[#b + 1]        = indent
-      b[#b + 1]        = "reloadAll("
-      b[#b + 1]        = tostring(ReloadAllCntr)
-      b[#b + 1]        = ")("
-      b[#b + 1]        = concatTbl(nameA, ", ")
-      b[#b + 1]        = ")\n"
-      shell:echo(concatTbl(b,""))
+      tracing_msg{"reloadAll(", tostring(ReloadAllCntr),")(",
+                  concatTbl(nameA, ", "), ")"}
    end
 
    for i = 1, #a do
@@ -702,11 +673,12 @@ function M.refresh()
    local mList    = concatTbl(mt:list("both","active"),":")
 
    for i = 1,#activeA do
-      local sn       = activeA[i]
-      local fn       = mt:fn(sn)
+      local sn        = activeA[i]
+      local fn        = mt:fn(sn)
+      local userName  = mt:userName(sn)
       if (isFile(fn)) then
-         frameStk:push(MName:new("mt",sn))
-         dbg.print{"loading: ",sn," fn: ", fn,"\n"}
+         frameStk:push(MName:new("mt",userName))
+         dbg.print{"loading: ",sn,", userName: ",myModuleUsrName(),", fn: ", fn,"\n"}
          loadModuleFile{file = fn, shell = shellNm, mList = mList,
                         reportErr=true}
          frameStk:pop()
@@ -1312,23 +1284,48 @@ function M.avail(self, argA)
    local spiderT,dbT,
          mpathMapT, providedByT = cache:build()
    
+   dbg.printT("providedByT", providedByT)
+
+
+
    if (extensions and providedByT and next(providedByT) ~= nil) then
+      local mpathT = {}
+      for i = 1, #mpathA do
+         mpathT[mpathA[i]] = true
+      end
+
+      dbg.printT("mpathT",mpathT)
+      dbg.printT("providedByT",providedByT)
+
       local b = {}
       for k,v in pairsByKeys(providedByT) do
          local found = false
          if (searchA.n > 0) then
             for i = 1, searchA.n do
-               for kk in pairs(v) do
-                  local s = searchA[i]
-                  if (kk:find(s)) then
+               for kk,vv in pairs(v) do
+                  local s        = searchA[i]
+                  for i = 1,#vv do
+                     local vvv = vv[i]
+                     if (kk:find(s) and mpathT[vvv.mpath] and (not vvv.hidden)) then
+                        found = true
+                        break
+                     end
+                  end
+                  if (found) then break end
+               end
+               if (found) then break end
+            end
+         else
+            for kk,vv in pairs(v) do
+               for i = 1,#vv do
+                  local vvv = vv[i]
+                  if (mpathT[vvv.mpath] and (not vvv.hidden)) then
                      found = true
                      break
                   end
                end
                if (found) then break end
             end
-         else
-            found = true
          end
          if (found) then
             b[#b + 1] = {"    " .. colorize("blue",k),"(E)"}

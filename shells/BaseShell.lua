@@ -113,6 +113,13 @@ function M.initialize(self)
    -- normalize nothing happens here on most shells
 end
 
+--------------------------------------------------------------------------
+-- BaseShell:finalize(): Do this first.
+
+function M.finalize(self)
+   -- normalize nothing happens here on most shells
+end
+
 function M.report_failure(self)
    local line = "\nfalse\n"
    stdout:write(line)
@@ -140,9 +147,14 @@ function M.expand(self, tbl)
       return
    end
 
-   self:initialize()
+   local init = false
 
    for k,v in pairsByKeys(tbl) do
+      if (not init) then
+         self:initialize()
+         init = true
+      end
+
       local vstr, vType, priorityStrT, refCountT = v:expand()
       if (next(priorityStrT) ~= nil) then
          for prtyKey,prtyStr in pairs(priorityStrT) do
@@ -166,6 +178,8 @@ function M.expand(self, tbl)
          self:alias(k,vstr)
       elseif (vType == "shell_function") then
          self:shellFunc(k,vstr)
+      elseif (vType == "complete") then
+         self:complete(k,vstr)
       elseif (not vstr) then
          self:unset(k, vType)
       elseif (k == "_ModuleTable_") then
@@ -175,6 +189,9 @@ function M.expand(self, tbl)
             self:expandVar(k,vstr,vType)
          end
       end
+   end
+   if (init) then
+      self:finalize()
    end
    self:report_success()
    dbg.fini("BaseShell:expand")
@@ -217,6 +234,12 @@ function M.expandMT(self, vstr)
    dbg.fini("BaseShell:expandMT")
 end
 
+
+function M.complete(self, name, value)
+   -- This base function does nothing.
+   -- The shell functions must do something with it
+   -- if they want anything to happen.
+end
 
 function M.echo(self, ...)
    local LMOD_REDIRECT = cosmic:value("LMOD_REDIRECT")

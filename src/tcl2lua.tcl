@@ -36,11 +36,15 @@
 
 global g_loadT g_varsT g_fullName g_usrName g_shellName g_mode g_shellType g_outputA, g_fast
 global g_moduleT g_setup_moduleT g_lua_cmd env g_my_cmd
+global g_envT g_envClrT
 
 set g_setup_moduleT 0
 set g_lua_cmd       "@path_to_lua@"
 set g_lmod_cmd      "@path_to_lmod@"
 set g_my_cmd        $argv0
+set g_envT          [dict create]
+set g_envClrT       [dict create]
+
 namespace eval ::cmdline {
     namespace export getArgv0 getopt getKnownOpt getfiles getoptions \
 	    getKnownOptions usage
@@ -337,6 +341,16 @@ proc currentMode {} {
     return $mode
 }
 
+proc currentModeLmod {} {
+    global g_modeStack
+    set mode [lindex $g_modeStack end]
+    set returnVal "load"
+    if { $mode == "remove" } {
+	set returnVal "unload"
+    }
+    return $returnVal
+}
+
 proc pushMode {mode} {
     global g_modeStack
     lappend g_modeStack $mode
@@ -422,16 +436,12 @@ proc module-whatis { args } {
     }
 
     regsub -all {[\n]} $msg  " " msg2
+    set msg2 [string trimright $msg2]
     lappend g_outputA  "whatis(\[===\[$msg2\]===\])\n"
 }
 
-proc myBreak { args } {
-    set msg ""
-    foreach item $args {
-       append msg $item
-       append msg " "
-    }
-    cmdargs "LmodBreak" $msg
+proc myBreak {  } {
+    cmdargs "LmodBreak"  ""
 }
 
 
@@ -449,7 +459,7 @@ proc setenv { var val args } {
     if {$mode == "load"} {
 	# set env vars in the current environment during load only
 	# Don't unset then during remove mode.
-	set env($var)     $val
+	set-env $var $val
 	set g_varsT($var) $val
     }
     cmdargs "setenv" $var $val
@@ -466,7 +476,7 @@ proc unsetenv { var {val {}}} {
     }\
     elseif {$mode == "remove"} {
 	if {$val != ""} {
-	    set env($var) $val
+	    set-env $var $val
 	}
     }
     cmdargs "unsetenv" $var $val
@@ -476,7 +486,10 @@ proc require-fullname {} {
     cmdargs "requireFullName"
 }
 
-
+proc haveDynamicMPATH {} {
+    cmdargs "haveDynamicMPATH"
+}
+    
 # Dictionary-style string comparison
 # Use dictionary sort of lsort proc to compare two strings in the "string
 # compare" fashion (returning -1, 0 or 1). Tcl dictionary-style comparison
@@ -496,7 +509,7 @@ proc versioncmp {str1 str2} {
 
 proc pushenv { var val } {
     global env  g_varsT
-    set env($var) $val
+    set-env $var $val
     set g_varsT($var) $val
     cmdargs "pushenv" $var $val
 }
@@ -592,10 +605,10 @@ proc remove-property { var val } {
     cmdargs "remove_property" $var $val
 }
 
-proc doubleQuoteEscaped {text} {
-    regsub -all "\"" $text "\\\"" text
-    regsub -all \n   $text "\\\n"  text
-    return $text
+proc doubleQuoteEscaped {str} {
+    set charlist {\\\t"\n}
+    # "
+    return [regsub -all "\(\[$charlist\]\)" $str {\\\1}]
 }
 
 proc cmdargs { cmd args } {
@@ -616,6 +629,21 @@ proc cmdargs { cmd args } {
 
 proc depends-on { args} {
     eval cmdargs "depends_on" $args
+}
+
+proc complete { shellName name args } {
+    global g_outputA
+    foreach arg $args {
+	set val [string trimright $arg "\r\n "]
+        set val [doubleQuoteEscaped $val]
+	lappend cmdArgsL $val
+    }
+    if {[info exists cmdArgsL]} {
+        set cmdArgs [join $cmdArgsL " "]
+	lappend g_outputA  "complete\(\"$shellName\",\"$name\",\"$cmdArgs\"\)\n"
+    } else {
+	lappend g_outputA  "complete\(\"$shellName\",\"$name\"\)\n"
+    }
 }
 
 proc my_exit { {code 1} } {
@@ -745,6 +773,7 @@ proc myPuts args {
 
     foreach {a b c} $args break
     set nonewline 0
+    set text "This string should never be seen!"
     switch [llength $args] {
         1 {
             set channel stdout
@@ -776,13 +805,16 @@ proc myPuts args {
         }
     }
     if { $putMode != "inHelp" } {
-        if { $nonewline == 0 } {
+        if { $nonewline == 0 && $channel  != "stdout" } {
             set text "$text\n"
         }
         set nonewline 0
         if { $channel == "stderr" } {
             set text "LmodMsgRaw(\[===\[$text\]===\])"
         } elseif { $channel == "stdout" } {
+	    set lmodMode [currentModeLmod]
+            set text "execute{cmd=\[===\[$text\]===\],modeA={\"$lmodMode\"}}"
+        } elseif { $channel == "prestdout" } {
             set text "io.stdout:write(\[===\[$text\]===\])"
         }
     }
@@ -949,12 +981,13 @@ proc execute-modulefile {modfile } {
     interp alias $child add-property   	 {} add-property
     interp alias $child always-load    	 {} always-load
     interp alias $child append-path    	 {} append-path
-    interp alias $child break       	 {} myBreak
+    interp alias $child complete       	 {} complete
     interp alias $child conflict       	 {} conflict
     interp alias $child depends-on     	 {} depends-on
     interp alias $child exit     	 {} my_exit
     interp alias $child extensions     	 {} extensions
     interp alias $child family         	 {} family
+    interp alias $child haveDynamicMPATH {} haveDynamicMPATH
     interp alias $child initGA         	 {} initGA
     interp alias $child is-loaded      	 {} is-loaded
     interp alias $child is-avail      	 {} is-avail
@@ -962,6 +995,7 @@ proc execute-modulefile {modfile } {
     interp alias $child module-info    	 {} module-info
     interp alias $child module-whatis  	 {} module-whatis
     interp alias $child myPuts         	 {} myPuts
+    interp alias $child myBreak      	 {} myBreak
     interp alias $child prepend-path   	 {} prepend-path
     interp alias $child prereq         	 {} prereq
     interp alias $child prereq-any     	 {} prereq-any
@@ -1011,6 +1045,16 @@ proc execute-modulefile {modfile } {
             setPutMode "normal"
         }
         if {$sourceFailed} {
+	    if { $sourceFailed == 4 || $errorMsg == {invoked "continue" outside of a loop}} {
+		set returnVal 0
+		showResults
+		return $returnVal
+	    } elseif { $sourceFailed == 3 || $errorMsg == {invoked "break" outside of a loop}} {
+		set returnVal 1
+		myBreak
+		showResults
+		return $returnVal
+	    }
             reportError $errorMsg
 	    set returnVal 1
         }
@@ -1028,6 +1072,26 @@ proc unset-env {var} {
 	unset env($var)
     }
 }
+proc set-env {var value} {
+    global g_envT g_envClrT env
+    if { ! [info exists env($var)] && ! [info exists g_envT($var)] } {
+	dict set g_envClrT $var 1
+    } else {
+	dict set g_envT $var $env($var)
+    }
+    set env($var) $value
+}
+
+proc reset-env {} {
+    global env g_envT g_envClrT
+    dict for {key value} $g_envT {
+	set env($key) $value
+    }
+    dict for {key value} $g_envClrT {
+	unset env($key)
+    }
+}
+
 
 proc main { modfile } {
     global g_mode
@@ -1035,6 +1099,7 @@ proc main { modfile } {
     pushMode           $g_mode
     execute-modulefile $modfile
     popMode
+    reset-env
 }
 
 global g_loadT g_help 

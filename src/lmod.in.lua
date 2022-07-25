@@ -376,6 +376,7 @@ function main()
       dbg.print{"package.path: ",package.path,"\n"}
       dbg.print{"package.cpath: ",package.cpath,"\n"}
       dbg.print{"lmodPath: ", cosmic:value("LMOD_PACKAGE_PATH"),"\n"}
+      dbg.print{"LOADEDMODULES: ",getenv("LOADEDMODULES"),"\n"}
    end
 
    -- dumpversion and quit if requested.
@@ -390,14 +391,8 @@ function main()
 
    local tracing = cosmic:value("LMOD_TRACING")
    if (tracing == "yes" ) then
-      local a   = {}
-      a[#a + 1] = "Lmod version: "
-      a[#a + 1] = Version.name()
-      a[#a + 1] = "\n"
-      a[#a + 1] = "running: module "
-      a[#a + 1] = concatTbl(arg," ")
-      a[#a + 1] = "\n"
-      Shell:echo(concatTbl(a,""))
+      tracing_msg{"Lmod version: ", Version.name(), "\n",
+                  "running: module ", concatTbl(arg," ")}
    end
 
    -- gitversion and quit if requested.
@@ -423,7 +418,17 @@ function main()
       local configuration = require("Configuration"):singleton()
       local a = {}
       a[1] = version()
-      a[2] = configuration:report()
+      a[2] = configuration:report{mini=false}
+      pcall(pager,io.stderr,concatTbl(a,""))
+      os.exit(0)
+   end
+
+   -- print mini configuration and quit.
+   if (masterTbl.miniConfig) then
+      local configuration = require("Configuration"):singleton()
+      local a = {}
+      a[1] = version()
+      a[2] = configuration:report{mini=true}
       pcall(pager,io.stderr,concatTbl(a,""))
       os.exit(0)
    end
@@ -531,6 +536,17 @@ function main()
    varT[n]        = Var:new(n)
    varT[n]:set(mt:serializeTbl())
 
+   -- Extract Loaded modules and filenames into
+   -- LOADEDMODULES and _LMFILES_
+   local status, loadedmodules, lmfiles = mt:extractModulesFiles()
+   dbg.print{"status: ",status,", loadedmodules: \"",loadedmodules,"\"\n"}
+   if (status) then 
+      varT['LOADEDMODULES'] = Var:new('LOADEDMODULES')
+      varT['LOADEDMODULES']:set(loadedmodules)
+      varT['_LMFILES_'] = Var:new('_LMFILES_')
+      varT['_LMFILES_']:set(lmfiles)
+   end
+
    local vPATH = varT["PATH"]
    if (vPATH) then
       vPATH:prt();
@@ -543,6 +559,7 @@ function main()
    -- Output all newly created path and variables.
    Shell:expand(varT)
 
+   -- Expand any execute\{\} cmds
    if (Shell:real_shell())then
       Exec:exec():expand()
    end

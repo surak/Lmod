@@ -52,15 +52,16 @@ local MasterControl    = require("MasterControl")
 MC_Spider              = inheritsFrom(MasterControl)
 MC_Spider.my_name      = "MC_Spider"
 MC_Spider.my_sType     = "load"
-MC_Spider.my_tcl_mode  = "display"
+MC_Spider.my_tcl_mode  = "load"
 
 local M                = MC_Spider
 
 M.always_load          = MasterControl.quiet
 M.always_unload        = MasterControl.quiet
 M.build_unload         = MasterControl.do_not_build_unload
-M.conflict             = MasterControl.quiet
 M.color_banner         = MasterControl.quiet
+M.complete             = MasterControl.quiet
+M.conflict             = MasterControl.quiet
 M.depends_on           = MasterControl.quiet
 M.error                = MasterControl.quiet
 M.execute              = MasterControl.execute
@@ -80,6 +81,7 @@ M.set_alias            = MasterControl.quiet
 M.set_shell_function   = MasterControl.quiet
 M.source_sh            = MasterControl.quiet
 M.try_load             = MasterControl.quiet
+M.uncomplete           = MasterControl.quiet
 M.unload               = MasterControl.quiet
 M.unload_usr           = MasterControl.quiet
 M.unsetenv             = MasterControl.quiet
@@ -150,6 +152,12 @@ function M.help(self,...)
    moduleT.help       = concatTbl({...},"")
    dbg.fini()
    return true
+end
+
+function M.haveDynamicMPATH(self)
+   dbg.start{"MC_Spider:haveDynamicMPATH()"}
+   Spider_dynamic_mpath()
+   dbg.fini("MC_Spider:haveDynamicMPATH")
 end
 
 --------------------------------------------------------------------------

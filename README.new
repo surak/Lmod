@@ -1,13 +1,35 @@
-Lmod 8.6+ 
-   (8.6.1)  * Issue #547: fix LMOD_CONFIG_DIR and --with-lmodConfigDir to be consistent
-            * Issue #550: Fix LMOD_RC to use cosmic interface and Add /etc/lmod/lmodrc.lua
-	      to search path
-	    * Issue #549: LMOD_AVAIL_STYLE can now be overridden in the lmod_config.lua file.
-	    * Issue #548: Fix dependency check to check both sn and fullname of loaded module.
-   (8.6.2)  * loading the settarg module  always set precmd and
-              (PROMPT_COMMAND=precmd for bash).  Now use LMOD_SETTARG_FUNCTIONS=yes
-              LMOD_SETTARG_IN_PROMPT=yes env. var conttrol.
-	    * Issue #551: Fix the output of level 2 spider output to not mix the description and help from
-	      different modulefiles
-            * Issue #552: Send mt and mname as part of table to isVisibleHook
-   (8.6.3)  * Fix bugs in tcl2lua.tcl and MF_TCL.lua w.r.t. shell function output.
+Lmod 8.7+
+   (8.7.1)  * Updates on 5/3 presentation.
+   (8.7.2)  * Print message when unloading an unknown module (but not in a purge or dependent module)
+   (8.7.3)  * Report warning when an MODULEPATH directory has too many non-modulefiles
+            * A .version or .modulerc that has non-zero file length and doesn't start
+              with "#%Module" is ignored.
+	    * Report an Infinite loop error if loading the same modulefile 500 times.
+	    * Add note to 095_tcl2lua.tcl about the whole TCL modulefile being evaluated by TCL.
+	      Note also that this is not a SOURCE-to-SOURCE translation from TCL to Lua.
+	    * Cannot use local with KSH
+	    * Only add to mpathMapT when mpath_old ~= mpath_new in l_processNewModulePath(path).
+   (8.7.4)  * Issue #578: Dynamic Spider Cache supported. 
+            * Change Regular files counter to ignore files that start with "." when counting non-modulefiles in
+              src/DirTree.lua
+   (8.7.5)  * Issue #583: Using userName instead of sn when refreshing.
+            * Issue #580: Add check for valid env. names for family(), setenv() etc.
+            * Issue #580: Add check for valid alias and shell function names.
+   (8.7.6)  * Change the way GIT_VERSION is found when installing Lmod
+	    * Issue #584: Modify tcl2lua.tcl to reset the changes made to the environment when using
+	      setenv and pushenv.
+	    * Issue #587: Fix bug created with #580 namely that env vars can start with "_"
+	    * Recalculate LMOD_SHELL_PGRM in bash.in to make sure that the Lmod shell matches the current
+	      shell
+   (8.7.7)  * Add option --miniConfig to report configuration differences from default.
+            * Setting LMOD_SYSTEM_DEFAULT_MODULES to __NO_SYSTEM_DEFAULT_MODULES__ will allow
+	      module reset to purge and reset $MODULEPATH to the system one.
+	    * Make LMOD_SYSTEM_DEFAULT_MODULES a cosmic variable.
+   (8.7.8)  * Add mcp:mustLoad() in cmdfuncs.lua: Unload(...).  Must catch case where
+              reloading a replacement module depend on a module which is not there
+              (See comments in test rt/depends_on/depends_on.tdesc about oneapi and impi)
+            * Issue #593: In DirTree.lua l_versionFile(), Now only evaluate the highest priority
+              entry in defaultA, instead of all.  This avoids the issue where there is a .modulerc.lua
+              which works and a .modulerc or .version file which has syntax errors.
+              
+              

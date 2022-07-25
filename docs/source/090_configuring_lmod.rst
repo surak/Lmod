@@ -71,10 +71,11 @@ configuration step.
   [string] This variable is used to where a site is using shared home
   files systems. See :ref:`shared_home_file_system` for more details.
 
-**LMOD_SYSTEM_DEFAULT_MODULEFILES**:
+**LMOD_SYSTEM_DEFAULT_MODULES**:
   [string] This variable to define a list of colon separated standard
   modules when the **module reset** command is issued by or for the
-  user. 
+  user.  If a site has no default modules then they should set this
+  module to **__NO_SYSTEM_DEFAULT_MODULES__**.
 
 **LMOD_TRACING**:
    [yes/no] If set to yes then Lmod will trace the loads/unloads while
@@ -116,7 +117,7 @@ the configuration option which will set the action.
   setting this to no means that your site will have to use either the
   "default" symlink or ".modulerc.lua" to specify defaults.
 
-**LMOD_ANCIENT**:
+**LMOD_ANCIENT_TIME**:
   [number, default:86400, --with-ancient].  The number of seconds that
   the user's personal cache is considered valid.
 
@@ -129,11 +130,9 @@ the configuration option which will set the action.
   [yes/no, default: yes, --with-availExtensions] Display package
   extensions when doing "module avail".
 
-**LMOD_CACHED_LOADS**:
-  [yes/no, default:no, --with-cachedLoads] If "yes" then Lmod will use
-  the spider cache to load modulefiles and produce a terse avail instead
-  of walking all the directories in MODULEPATH as long as
-  LMOD_IGNORE_CACHE is not set.
+**LMOD_BASH_INITIALIZE**:
+  [yes/no, default:yes, --with-bashInitialize] If "yes" then Lmod will
+  disable file globbing when eval'ing the output from Lmod.
 
 **LMOD_CASE_INDEPENDENT_SORTING**:
   [yes/no, default: no, --with-caseIndependentSorting] Make avail and
@@ -153,6 +152,14 @@ the configuration option which will set the action.
   directories in path-like variables, PATH, LD_LIBRARY_PATH, ...
   Note that if LMOD_TMOD_PATH_RULE is "yes" then LMOD_DUPLICATE_PATH
   is set to "no".
+
+**LMOD_DYNAMIC_SPIDER_CACHE**:
+  [yes/no, default: yes, --with-dynamicSpiderCache] Allow Lmod to
+  re-evaluate modules that change $MODULEPATH that are already in the
+  system spider cache. This will allow for user modulefiles that are
+  in a matching software hierarchy.  There is a small speed cost to
+  support this feature. Sites that do not use this feature may wish to
+  disable this.
 
 **LMOD_EXTENDED_DEFAULT**:
   [yes/no, default: yes, --with-extendedDefault] Allow users to

@@ -102,6 +102,7 @@ local function l_checkValidModulefileReal(fn)
    if (not f) then
       return false
    end
+
    local line = f:read(20) or ""
    f:close()
 
@@ -137,31 +138,31 @@ end
 -- This routine is given the absolute path to all possible default
 -- files. 
 -- @param defaultA - An array entries that contain: { fullName=, fn=, mpath=, luaExt=, barefn=}
-
--- return all possible absolute paths to the default file.
+-- return the first defaultA.  All other ones are ignored.
 local function l_versionFile(mrc, mpath, defaultA)
-
-   for i = 1,#defaultA do
-      repeat 
-         local defaultT = defaultA[i]
-         local path     = defaultT.fn
-
-         if (defaultT.barefn == "default") then
-            defaultT.value = barefilename(l_walk_link(defaultT.fn)):gsub("%.lua$","")
-            break
-         end
-         
-         local modA = mrc_load(path)
-         local _, _, name = defaultT.fullName:find("(.*)/.*")
-         
-         defaultT.value = mrc:parseModA_for_moduleA(name, mpath, modA)
-      until true
-   end
-
+   dbg.start{"DirTree:l_versionFile(mrc, mpath, defaultA)"}
+   sort(defaultA, function(x,y)
+                    return x.defaultIdx < y.defaultIdx
+                  end)
+   repeat 
+      local defaultT = defaultA[1]
+      local path     = defaultT.fn
+      if (defaultT.barefn == "default") then
+         defaultT.value = barefilename(l_walk_link(defaultT.fn)):gsub("%.lua$","")
+         break
+      end
+      
+      local modA = mrc_load(path)
+      local _, _, name = defaultT.fullName:find("(.*)/.*")
+      
+      defaultT.value = mrc:parseModA_for_moduleA(name, mpath, modA)
+   until true
+   dbg.fini("DirTree:l_versionFile")
    return defaultA
 end
 
-local function l_walk(mrc, mpath, path, dirA, fileT)
+local function l_walk(mrc, mpath, path, dirA, fileT, regularFn)
+   dbg.start{"l_walk(mrc,mpath:\"",mpath,"\", path:\"",path,"\", dirA, fileT, regularFn"}
    local defaultA   = {}
    local permissions
    local uid
@@ -170,7 +171,8 @@ local function l_walk(mrc, mpath, path, dirA, fileT)
    local attr       = lfs.attributes(path)
    if (not attr or type(attr) ~= "table" or attr.mode ~= "directory" or
        not access(path,"rx")) then
-      return defaultA
+      dbg.fini("l_walk")
+      return defaultA, regularFn
    end
 
 
@@ -185,6 +187,8 @@ local function l_walk(mrc, mpath, path, dirA, fileT)
 
          if (attr.uid == 0 and user_uid == 0 and not attr.permissions:find("......r..")) then break end
 
+         dbg.print{"file: ",file,", kind: ",kind,"\n"}
+
          if (kind == "directory" and f ~= "." and f ~= "..") then
             dirA[#dirA + 1 ] = file
          elseif (kind == "file" or kind == "link") then
@@ -192,8 +196,10 @@ local function l_walk(mrc, mpath, path, dirA, fileT)
             local fullName  = extractFullName(mpath, file)
             if (dfltIdx) then
                local luaExt = f:find("%.lua$")
+               local sizeFn = lfs.attributes(file,"size")
+               if (f ~= "default" and not luaExt and sizeFn > 0 and (not l_checkValidModulefile(file))) then break end
                defaultA[#defaultA+1] = { fullName = fullName, fn = file, mpath = mpath, luaExt = luaExt,
-                                         barefn = f, defaultIdx = dfltIdx }
+                                         barefn = f, defaultIdx = dfltIdx, value = false}
                if (f == "default" and kind == "file") then
                   fileT[fullName] = {fn = file, canonical = f, mpath = mpath}
                end
@@ -203,6 +209,10 @@ local function l_walk(mrc, mpath, path, dirA, fileT)
                   local dot_version = f:find("^%.version") or f:find("^%.modulerc")
                   fileT[fullName]   = {fn = file, canonical = f:gsub("%.lua$", ""), mpath = mpath,
                                        luaExt = luaExt, dot_version = dot_version}
+               else
+                  if (f:sub(1,1) ~= ".") then
+                     regularFn = regularFn + 1
+                  end
                end
             end
          end
@@ -210,12 +220,10 @@ local function l_walk(mrc, mpath, path, dirA, fileT)
    end
    if (next(defaultA) ~= nil) then
       defaultA = l_versionFile(mrc, mpath, defaultA)
-      sort(defaultA, function(x,y)
-                     return x.defaultIdx < y.defaultIdx
-                     end)
    end
 
-   return defaultA
+   dbg.fini("l_walk")
+   return defaultA, regularFn
 end
 
 ----------------------------------------------------------------------
@@ -232,11 +240,12 @@ end
 
 
 
-local function l_walk_tree(mrc, mpath, pathIn, dirT)
+local function l_walk_tree(mrc, mpath, pathIn, dirT, regularFn)
 
-   local dirA     = {}
-   local fileT    = {}
-   local defaultA = l_walk(mrc, mpath, pathIn, dirA, fileT)
+   local defaultA 
+   local dirA          = {}
+   local fileT         = {}
+   defaultA, regularFn = l_walk(mrc, mpath, pathIn, dirA, fileT, regularFn)
 
    dirT.fileT    = fileT
    dirT.defaultA = defaultA
@@ -248,7 +257,7 @@ local function l_walk_tree(mrc, mpath, pathIn, dirT)
       local fullName = extractFullName(mpath, path)
 
       dirT.dirT[fullName] = {}
-      l_walk_tree(mrc, mpath, path, dirT.dirT[fullName])
+      regularFn = l_walk_tree(mrc, mpath, path, dirT.dirT[fullName], regularFn)
 
       ----------------------------------------------------------------
       -- if the directory is empty or bad symlinks then do not save it
@@ -257,20 +266,28 @@ local function l_walk_tree(mrc, mpath, pathIn, dirT)
          dirT.dirT[fullName] = nil
       end
    end
+   return regularFn
 end
 
 local function l_build(mpathA)
-   local dirA = {}
-   local mrc  = MRC:singleton()
+   --dbg.start{"l_build(mpathA)"}
+   local dirA      = {}
+   local mrc       = MRC:singleton()
 
    for i = 1,#mpathA do
-      local mpath = mpathA[i]
+      local regularFn = 0
+      local mpath     = mpathA[i]
       if (isDir(mpath)) then
          local dirT  = {}
-         l_walk_tree(mrc, mpath, mpath, dirT)
+         regularFn = l_walk_tree(mrc, mpath, mpath, dirT, regularFn)
+         --dbg.print{"regularFn: ",tostring(regularFn),"\n"}
+         if (regularFn > 100) then
+            LmodWarning{msg="w_Too_Many_RegularFn",mpath=mpath,regularFn=tostring(regularFn)}
+         end
          dirA[#dirA+1] = {mpath=mpath, dirT=dirT}
       end
    end
+   --dbg.fini("l_build")
    return dirA
 end
 

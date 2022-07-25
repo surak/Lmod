@@ -25,6 +25,7 @@ spiderT = {
         ["impi/4.1"] = {
           Version = "4.1",
           canonical = "4.1",
+          changeMPATH = true,
           family = "MPI",
           fn = "ProjectDIR/rt/rmap/mf/Compiler/intel/13.1/impi/4.1.lua",
           lpathA = {
@@ -50,6 +51,7 @@ spiderT = {
         ["impi/4.1"] = {
           Version = "4.1",
           canonical = "4.1",
+          changeMPATH = true,
           family = "MPI",
           fn = "ProjectDIR/rt/rmap/mf/Compiler/intel/14.0/impi/4.1.lua",
           lpathA = {
@@ -75,6 +77,7 @@ spiderT = {
         ["intel/13.1"] = {
           Version = "13.1",
           canonical = "13.1",
+          changeMPATH = true,
           family = "compiler",
           fn = "ProjectDIR/rt/rmap/mf/Core/intel/13.1.lua",
           lpathA = {
@@ -91,6 +94,7 @@ spiderT = {
         ["intel/14.0.1"] = {
           Version = "14.0.1",
           canonical = "14.0.1",
+          changeMPATH = true,
           family = "compiler",
           fn = "ProjectDIR/rt/rmap/mf/Core/intel/14.0.1.lua",
           lpathA = {
@@ -159,6 +163,7 @@ dbT = {
       lpathA = {
         ["ProjectDIR/rt/rmap/apps/intel-13_1/impi/4.1/lib"] = 1,
       },
+      mpath = "ProjectDIR/rt/rmap/mf/Compiler/intel/13.1",
       pV = "000000004.000000001.*zfinal",
       parentAA = {
         {
@@ -178,6 +183,7 @@ dbT = {
       lpathA = {
         ["ProjectDIR/rt/rmap/apps/intel-14_0/impi/4.1/lib"] = 1,
       },
+      mpath = "ProjectDIR/rt/rmap/mf/Compiler/intel/14.0",
       pV = "000000004.000000001.*zfinal",
       parentAA = {
         {
@@ -199,6 +205,7 @@ dbT = {
       lpathA = {
         ["ProjectDIR/rt/rmap/apps/intel/13.1/lib"] = 1,
       },
+      mpath = "ProjectDIR/rt/rmap/mf/Core",
       pV = "000000013.000000001.*zfinal",
       pathA = {
         ["ProjectDIR/rt/rmap/apps/intel/13.1/bin"] = 1,
@@ -213,6 +220,7 @@ dbT = {
       lpathA = {
         ["ProjectDIR/rt/rmap/apps/intel/14.0.1/lib"] = 1,
       },
+      mpath = "ProjectDIR/rt/rmap/mf/Core",
       pV = "000000014.000000000.000000001.*zfinal",
       pathA = {
         ["ProjectDIR/rt/rmap/apps/intel/14.0.1/bin"] = 1,
@@ -225,6 +233,7 @@ dbT = {
       Version = "1.0",
       fullName = "symlink/1.0",
       hidden = false,
+      mpath = "ProjectDIR/rt/rmap/mf/Core",
       pV = "000000001.*zfinal",
       pathA = {
         ["OutputDIR/my_bin"] = 1,
@@ -320,6 +329,17 @@ _ModuleTable_='_ModuleTable_={MTversion=3,depthT={},family={},mT={},mpathA={"Pro
 export _ModuleTable_;
 ===========================
 step 6
+lua ProjectDIR/src/lmod.in.lua bash --regression_testing spider
+===========================
+__LMOD_REF_COUNT_MODULEPATH=ProjectDIR/rt/rmap/mf/2Core:1;
+export __LMOD_REF_COUNT_MODULEPATH;
+MODULEPATH=ProjectDIR/rt/rmap/mf/2Core;
+export MODULEPATH;
+_ModuleTable_='_ModuleTable_={MTversion=3,depthT={},family={},mT={},mpathA={"ProjectDIR/rt/rmap/mf/2Core",},systemBaseMPATH="ProjectDIR/rt/rmap/mf/2Core",}';
+export _ModuleTable_;
+false
+===========================
+step 7
 buildSpiderT ProjectDIR/rt/rmap/mf/2Core
 ===========================
 timestampFn = {
@@ -341,6 +361,7 @@ spiderT = {
         ["impi/4.1"] = {
           Version = "4.1",
           canonical = "4.1",
+          changeMPATH = true,
           family = "MPI",
           fn = "ProjectDIR/rt/rmap/mf/2Compiler/intel/14.0/impi/4.1.lua",
           lpathA = {
@@ -366,6 +387,7 @@ spiderT = {
         ["intel/14.0.1"] = {
           Version = "14.0.1",
           canonical = "14.0.1",
+          changeMPATH = true,
           family = "compiler",
           fn = "ProjectDIR/rt/rmap/mf/2Core/intel/14.0.1.lua",
           lpathA = {
@@ -411,7 +433,7 @@ mpathMapT = {
   },
 }
 ===========================
-step 7
+step 8
 buildDbT ProjectDIR/rt/rmap/mf/2Core
 ===========================
 timestampFn = {
@@ -427,6 +449,7 @@ dbT = {
       lpathA = {
         ["ProjectDIR/rt/rmap/apps/intel-14_0/impi/4.1/lib"] = 1,
       },
+      mpath = "ProjectDIR/rt/rmap/mf/2Compiler/intel/14.0",
       pV = "000000004.000000001.*zfinal",
       parentAA = {
         {
@@ -448,6 +471,7 @@ dbT = {
       lpathA = {
         ["ProjectDIR/rt/rmap/apps/intel/14.0.1/lib"] = 1,
       },
+      mpath = "ProjectDIR/rt/rmap/mf/2Core",
       pV = "000000014.000000000.000000001.*zfinal",
       pathA = {
         ["ProjectDIR/rt/rmap/apps/intel/14.0.1/bin"] = 1,
@@ -460,6 +484,7 @@ dbT = {
       Version = "5.6",
       fullName = "paraview/5.6",
       hidden = false,
+      mpath = "ProjectDIR/rt/rmap/mf/2MPI/intel/14.0/impi/4.1",
       pV = "000000005.000000006.*zfinal",
       parentAA = {
         {
@@ -472,7 +497,7 @@ dbT = {
 }
 provideByT = {}
 ===========================
-step 8
+step 9
 buildSpiderT ProjectDIR/rt/rmap/mf/2Core
 ===========================
 timestampFn = {
@@ -494,6 +519,7 @@ spiderT = {
         ["impi/4.1"] = {
           Version = "4.1",
           canonical = "4.1",
+          changeMPATH = true,
           family = "MPI",
           fn = "ProjectDIR/rt/rmap/mf/2Compiler/intel/14.0/impi/4.1.lua",
           lpathA = {
@@ -519,6 +545,7 @@ spiderT = {
         ["intel/14.0.1"] = {
           Version = "14.0.1",
           canonical = "14.0.1",
+          changeMPATH = true,
           family = "compiler",
           fn = "ProjectDIR/rt/rmap/mf/2Core/intel/14.0.1.lua",
           lpathA = {
@@ -544,6 +571,7 @@ spiderT = {
         ["paraview/5.6"] = {
           Version = "5.6",
           canonical = "5.6",
+          changeMPATH = true,
           fn = "ProjectDIR/rt/rmap/mf/2MPI/intel/14.0/impi/4.1/paraview/5.6.lua",
           luaExt = 4,
           mpath = "ProjectDIR/rt/rmap/mf/2MPI/intel/14.0/impi/4.1",
@@ -567,7 +595,7 @@ mpathMapT = {
   },
 }
 ===========================
-step 9
+step 10
 buildDbT ProjectDIR/rt/rmap/mf/2Core
 ===========================
 timestampFn = {
@@ -583,6 +611,7 @@ dbT = {
       lpathA = {
         ["ProjectDIR/rt/rmap/apps/intel-14_0/impi/4.1/lib"] = 1,
       },
+      mpath = "ProjectDIR/rt/rmap/mf/2Compiler/intel/14.0",
       pV = "000000004.000000001.*zfinal",
       parentAA = {},
       pathA = {
@@ -600,6 +629,7 @@ dbT = {
       lpathA = {
         ["ProjectDIR/rt/rmap/apps/intel/14.0.1/lib"] = 1,
       },
+      mpath = "ProjectDIR/rt/rmap/mf/2Core",
       pV = "000000014.000000000.000000001.*zfinal",
       parentAA = {},
       pathA = {
@@ -613,6 +643,7 @@ dbT = {
       Version = "5.6",
       fullName = "paraview/5.6",
       hidden = false,
+      mpath = "ProjectDIR/rt/rmap/mf/2MPI/intel/14.0/impi/4.1",
       pV = "000000005.000000006.*zfinal",
       parentAA = {},
       wV = "000000005.000000006.*zfinal",
@@ -620,3 +651,63 @@ dbT = {
   },
 }
 provideByT = {}
+===========================
+step 11
+buildRmapT ProjectDIR/rt/rmap/mf/2Core
+===========================
+timestampFn = {
+  false,
+}
+reverseMapT = {
+  ["ProjectDIR/rt/rmap/apps/intel/14.0.1/bin"] = {
+    flavor = {
+      "default",
+    },
+    kind = "bin",
+    moduleFn = "ProjectDIR/rt/rmap/mf/2Core/intel/14.0.1.lua",
+    pkg = "intel/14.0.1",
+  },
+  ["ProjectDIR/rt/rmap/apps/intel/14.0.1/lib"] = {
+    flavor = {
+      "default",
+    },
+    kind = "lib",
+    moduleFn = "ProjectDIR/rt/rmap/mf/2Core/intel/14.0.1.lua",
+    pkg = "intel/14.0.1",
+  },
+  ["OutputDIR/otherBin"] = {
+    flavor = {
+      "default",
+    },
+    kind = "bin",
+    moduleFn = "ProjectDIR/rt/rmap/mf/2Core/intel/14.0.1.lua",
+    pkg = "intel/14.0.1",
+  },
+}
+xlibmap = {}
+===========================
+step 12
+buildRmapT ProjectDIR/rt/rmap/mf/2Core
+===========================
+timestampFn = {
+  false,
+}
+reverseMapT = {
+  ["ProjectDIR/rt/rmap/apps/intel/14.0.1/bin"] = {
+    flavor = {
+      "default",
+    },
+    kind = "bin",
+    moduleFn = "ProjectDIR/rt/rmap/mf/2Core/intel/14.0.1.lua",
+    pkg = "intel/14.0.1",
+  },
+  ["ProjectDIR/rt/rmap/apps/intel/14.0.1/lib"] = {
+    flavor = {
+      "default",
+    },
+    kind = "lib",
+    moduleFn = "ProjectDIR/rt/rmap/mf/2Core/intel/14.0.1.lua",
+    pkg = "intel/14.0.1",
+  },
+}
+xlibmap = {}

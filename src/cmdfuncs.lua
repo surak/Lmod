@@ -65,6 +65,7 @@ local lfs          = require("lfs")
 local sort         = table.sort
 local pack         = (_VERSION == "Lua 5.1") and argsPack or table.pack  -- luacheck: compat
 local unpack       = (_VERSION == "Lua 5.1") and unpack or table.unpack  -- luacheck: compat
+local s_purgeFlg   = false
 
 local system_name  = cosmic:value("LMOD_SYSTEM_NAME")
 
@@ -195,7 +196,7 @@ function GetDefault(collection)
    local sname = (not system_name) and "" or "." .. system_name
    local path  = pathJoin(os.getenv("HOME"), ".lmod.d", collection .. sname)
    local mt    = FrameStk:singleton():mt()
-   mt:getMTfromFile{fn=path, name=collection, }
+   mt:getMTfromFile{fn=path, name=collection}
    dbg.fini("GetDefault")
 end
 
@@ -499,6 +500,9 @@ function Purge_Usr()
 end
 
 
+function purgeFlg()
+   return s_purgeFlg
+end
 --------------------------------------------------------------------------
 -- Unload all loaded modules.
 -- @param force If true then sticky modules are unloaded as well.
@@ -516,7 +520,9 @@ function Purge(force)
       mA[#mA+1] = MName:new("mt",totalA[i])
    end
    dbg.start{"Purge(",concatTbl(totalA,", "),")"}
+   s_purgeFlg = true
    unload_usr_internal(mA, force)
+   s_purgeFlg = false
 
    -- A purge should not set the warning flag.
    clearWarningFlag()
@@ -544,7 +550,7 @@ end
 -- @param msg If true then print resetting message.
 function Reset(msg)
    dbg.start{"Reset()"}
-   local default = os.getenv("LMOD_SYSTEM_DEFAULT_MODULES") or ""
+   local default = cosmic:value("LMOD_SYSTEM_DEFAULT_MODULES")
    if (default == "") then
       if (not quiet()) then
          io.stderr:write(i18n("w_SYS_DFLT_EMPTY",{}))
@@ -609,15 +615,17 @@ function Reset(msg)
    end
 
 
-   local a = {}
-   for m in default:split(":") do
-      dbg.print{"m: ",m,"\n"}
-      a[#a + 1] = m
+   if (default ~= "__NO_SYSTEM_DEFAULT_MODULES__") then
+      local a = {}
+      for m in default:split(":") do
+         dbg.print{"m: ",m,"\n"}
+         a[#a + 1] = m
+      end
+      if (#a > 0) then
+         Load_Usr(unpack(a))
+      end
+      dbg.fini("Reset")
    end
-   if (#a > 0) then
-      Load_Usr(unpack(a))
-   end
-   dbg.fini("Reset")
 end
 
 --------------------------------------------------------------------------
@@ -900,18 +908,21 @@ end
 --  loaded then it is registered with MT so that it won't be
 --  reported in a swap message.
 function Swap(...)
-   local a = select(1, ...) or ""
-   local b = select(2, ...) or ""
-   local s = {}
+   local a  = select(1, ...) or ""
+   local b  = select(2, ...) or ""
+   local s  = {}
+   local mt = FrameStk:singleton():mt()
 
    dbg.start{"Swap(",concatTbl({...},", "),")"}
 
    local n = select("#", ...)
    if (n ~= 2) then
       b = a
+      -- Trim any version info from a
+      local sn_match, sn = mt:find_possible_sn(a)
+      a = sn
    end
 
-   local mt    = FrameStk:singleton():mt()
    local mname = MName:new("mt", a)
    local sn    = mname:sn()
    if (not mt:have(sn,"any")) then
@@ -1068,6 +1079,7 @@ function UnLoad(...)
    dbg.start{"UnLoad(",concatTbl({...},", "),")"}
    local force = false
    unload_usr_internal(MName:buildA("mt", ...), force)
+   mcp:mustLoad()
    dbg.fini("UnLoad")
 end
 

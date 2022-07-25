@@ -137,10 +137,10 @@ spiderT = {
           },
         },
         ["foo/1.3"] = {
-          Category = "system ",
-          Description = "This is a descript ",
-          Name = "foo ",
-          Version = "1.3 ",
+          Category = "system",
+          Description = "This is a descript",
+          Name = "foo",
+          Version = "1.3",
           canonical = "1.3",
           family = "bar",
           fn = "ProjectDIR/rt/softwarePage/mf/foo/1.3",
@@ -156,7 +156,7 @@ And even more help
           },
           wV = "000000001.000000003.*zfinal",
           whatis = {
-            "Name: foo ", "Version: 1.3 ", "Category: system ", "Description: This is a descript ",
+            "Name: foo", "Version: 1.3", "Category: system", "Description: This is a descript",
           },
         },
       },
@@ -182,6 +182,7 @@ dbT = {
       fullName = "foo/.2.0",
       help = "foo v.2.0",
       hidden = true,
+      mpath = "ProjectDIR/rt/softwarePage/mf",
       pV = "000000000.000000002.*zfinal",
       wV = "000000000.000000002.*zfinal",
       whatis = {
@@ -192,6 +193,7 @@ dbT = {
       Version = ".pkginfo",
       fullName = "foo/.pkginfo",
       hidden = true,
+      mpath = "ProjectDIR/rt/softwarePage/mf",
       pV = "*pkginfo.*zfinal",
       wV = "*pkginfo.*zfinal",
     },
@@ -203,6 +205,7 @@ dbT = {
       fullName = "foo/1.0",
       help = "foo v1.0",
       hidden = false,
+      mpath = "ProjectDIR/rt/softwarePage/mf",
       pV = "000000001.*zfinal",
       propT = {
         arch = {
@@ -222,6 +225,7 @@ dbT = {
       fullName = "foo/1.1",
       help = "foo v1.1",
       hidden = false,
+      mpath = "ProjectDIR/rt/softwarePage/mf",
       pV = "000000001.000000001.*zfinal",
       propT = {
         arch = {
@@ -234,15 +238,16 @@ dbT = {
       },
     },
     ["ProjectDIR/rt/softwarePage/mf/foo/1.3"] = {
-      Category = "system ",
-      Description = "This is a descript ",
-      Version = "1.3 ",
+      Category = "system",
+      Description = "This is a descript",
+      Version = "1.3",
       family = "bar",
       fullName = "foo/1.3",
       help = [[This is the help message for the foo 1.3 module
 And even more help
 ]],
       hidden = false,
+      mpath = "ProjectDIR/rt/softwarePage/mf",
       pV = "000000001.000000003.*zfinal",
       propT = {
         state = {
@@ -251,7 +256,7 @@ And even more help
       },
       wV = "000000001.000000003.*zfinal",
       whatis = {
-        "Name: foo ", "Version: 1.3 ", "Category: system ", "Description: This is a descript ",
+        "Name: foo", "Version: 1.3", "Category: system", "Description: This is a descript",
       },
     },
   },
@@ -286,7 +291,7 @@ spA = {
       },
       {
         canonicalVersionString = "000000001.000000003.*zfinal",
-        description = "This is a descript ",
+        description = "This is a descript",
         family = "bar",
         full = "foo/1.3",
         help = [[This is the help message for the foo 1.3 module
@@ -299,7 +304,7 @@ And even more help
             testing = 1,
           },
         },
-        versionName = "1.3 ",
+        versionName = "1.3",
         wV = "000000001.000000003.*zfinal",
       },
       {

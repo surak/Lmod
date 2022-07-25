@@ -124,6 +124,14 @@ cosmic:init{name    = "LMOD_TRACING",
 
 
 ------------------------------------------------------------------------
+-- LMOD_DYNAMIC_SPIDER_CACHE :  Support for Dynamic Spider Caches
+------------------------------------------------------------------------
+
+cosmic:init{name = "LMOD_DYNAMIC_SPIDER_CACHE",
+            sedV = "@dynamic_spider_cache@",
+            yn   = "yes"}
+
+------------------------------------------------------------------------
 -- LMOD_CASE_INDEPENDENT_SORTING :  make avail and spider use case
 --                                  independent sorting.
 ------------------------------------------------------------------------
@@ -326,6 +334,16 @@ cosmic:init{name    = "LMOD_PAGER",
 
 cosmic:init{name    = "LMOD_PAGER_OPTS",
             default = "-XqMREF"}
+
+------------------------------------------------------------------------
+-- LMOD_SYSTEM_DEFAULT_MODULES: 
+------------------------------------------------------------------------
+local defaultModules = getenv("LMOD_SYSTEM_DEFAULT_MODULES") or ""
+
+cosmic:init{name    = "LMOD_SYSTEM_DEFAULT_MODULES",
+            assignV = defaultModules,
+            default = "__unknown__" }
+
 
 ------------------------------------------------------------------------
 -- LMOD_MODULERCFILE: The system RC file to specify aliases, defaults

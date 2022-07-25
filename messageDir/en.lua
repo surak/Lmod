@@ -104,6 +104,8 @@ return {
 ]==], --
      e_Args_Not_Strings_short = "command: %{cmdName}, one or more arguments are not strings.",
      e_Avail_No_MPATH      = "module %{name} is not possible. MODULEPATH is not set or not set with valid paths.\n",
+     e_BadAlias            = "%{kind} names cannot contain spaces (Not: \"%{name}\")\n",
+     e_BadName             = "%{kind} names must be start with a letter or underscore followed letters, numbers and underscores (Not: \"%{name}\")\n",
      e_BrokenCacheFn       = "Spider cache fn: \"%{fn}\" appears broken",
      e_BrokenQ             = "Internal error: broken module Q\n",
      e_Conflict            = "Cannot load module \"%{name}\" because these module(s) are loaded:\n   %{module_list}\n",
@@ -146,6 +148,7 @@ Lmod does not support modulefiles that start with two or more underscores
      e_Illegal_option      = [==[Option: "%{v}" is unknown.
   Try module --help for usage.
 ]==],
+     e_Inf_Loop            = "Infinite Load Loop detected for module: \"%{fullName}\" file: \"%{file}\"",
      e_LocationT_Srch      = "Error in LocationT:search().",
      e_Missing_Value       = "%{func}(\"%{name}\") is not valid; a value is required.",
      e_MT_corrupt          = [==[The module table stored in the environment is corrupt.
@@ -236,7 +239,7 @@ To search the contents of modules for matching words execute:
 
 ]==], --
      m_Reload_Modules      = "\nDue to MODULEPATH changes, the following have been reloaded:\n",
-     m_Reload_Version_Chng = "\nThe following have been reloaded with a version change:\n",
+     m_Reload_Version_Chng = "\nThe following have been reloaded with a version change:\n", --
      m_Restore_Coll        = "Restoring modules from %{msg}\n",
      m_Reset_SysDflt       = "Running \"module reset\". Resetting modules to system default. The following $MODULEPATH directories have been removed: %{pathA}\n",
      m_Save_Coll           = "Saved current collection of modules to: \"%{a}\"%{msgTail}\n",
@@ -264,6 +267,7 @@ must specify the version if there is more than one version:
   (Use "module --force purge" to unload all):
 ]==],
      m_Sticky_Unstuck      = "\nThe following sticky modules could not be reloaded:\n",
+     m_Unload_unknown      = "\nNote: the module \"%{modName}\" cannot be unloaded because it was not loaded.\n",
      m_Versions            = "     Versions:\n",
      m_Where               = "\n  Where:\n",
 
@@ -311,6 +315,9 @@ The system default contains no modules
   $  module --force save %{name}
 ]==], --
      w_System_Reserved     = "The named collection 'system' is reserved. Please choose another name.\n",
+     w_Too_Many_RegularFn  = [==[
+MODULEPATH directory: "%{mpath}" has too many non-modulefiles (%{regularFn}). Please make sure that modulefiles are in their own directory and not mixed in with non-modulefiles (e.g. source code)
+]==],
      w_Undef_MPATH         = "MODULEPATH is undefined.\n",
      w_Unknown_Hook        = "Unknown hook: %{name}\n",
 
@@ -426,6 +433,7 @@ The system default contains no modules
      dumpV_hlp = "Dump version in a machine readable way and quit",
      chkSyn_H  = "Checking module command syntax: do not load",
      config_H  = "Report Lmod Configuration",
+     miniConfig_H  = "Report Lmod Configuration differences",
      jcnfig_H  = "Report Lmod Configuration in json format",
      MT_hlp    = "Report Module Table State",
      timer_hlp = "report run times",

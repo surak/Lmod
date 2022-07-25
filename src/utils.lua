@@ -601,6 +601,9 @@ function regular_cmp(x,y)
 end
 
 
+
+
+
 function sanizatizeTbl(rplmntA, inT, outT)
    for k, v in pairs(inT) do
       local key = k
@@ -831,13 +834,44 @@ function getWarningFlag()
    return s_warning
 end
 
+local function l_restoreEnv(oldEnvT, newEnvT)
+   dbg.start{"l_restoreEnv(oldEnvT, newEnvT)"}
+   local envT = {}
+   for k,v in newEnvT do
+      local old = origEnvT[k]
+      if (old == nil) then
+         envT[k] = false
+      elseif (v ~= old) then
+         envT[k] = v
+      end
+      origEnvT[k] = nil
+   end
+
+   for k,v in origEnvT do
+      local new = newEnvT[k]
+      if (new == nil) then
+         envT[k] = v
+      end
+   end
+
+   dbg.printT("envT",envT)
+   for k,v in envT do
+      setenv_posix(k,v or nil, true)
+   end
+   dbg.fini("l_restoreEnv")
+end   
+
+
 local function l_runTCLprog(TCLprog, tcl_args)
-   local a   = {}
-   a[#a + 1] = cosmic:value("LMOD_TCLSH")
-   a[#a + 1] = TCLprog
-   a[#a + 1] = tcl_args or ""
-   local cmd = concatTbl(a," ")
+   local a        = {}
+   local origEnvT = posix.getenv()
+   a[#a + 1]      = cosmic:value("LMOD_TCLSH")
+   a[#a + 1]      = TCLprog
+   a[#a + 1]      = tcl_args or ""
+   local cmd      = concatTbl(a," ")
    local whole, status = capture(cmd)
+   local newEnvT  = posix.getenv()
+
    return whole, status
 end
 
@@ -1009,3 +1043,19 @@ function initialize_lmod()
 
    require("SitePackage")
 end
+
+function tracing_msg(msgA)
+   local FrameStk   = require("FrameStk")
+   local shell      = _G.Shell
+   local stackDepth = FrameStk:singleton():stackDepth()
+   local indent     = ("  "):rep(stackDepth+1)
+   local b          = {}
+   b[#b + 1]        = indent
+   for i = 1,#msgA do
+      b[#b+1] = msgA[i]
+   end
+   b[#b + 1]        = "\n"
+   shell:echo(concatTbl(b,""))
+end
+
+   

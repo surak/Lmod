@@ -113,12 +113,24 @@ local function l_processNewModulePATH(path)
    local moduleStack = masterTbl.moduleStack
    local iStack      = #moduleStack
    local mpath_old   = moduleStack[iStack].mpath
+   local moduleT     = moduleStack[iStack].moduleT
    local fullName    = moduleStack[iStack].fullName
    local t           = mpathMapT[mpath_new] or {}
    t[fullName]       = mpath_old
 
-   mpathMapT[mpath_new] = t
+   if (mpath_new ~= mpath_old) then
+      mpathMapT[mpath_new] = t
+      moduleT.changeMPATH = true
+   end
 
+end
+
+function Spider_dynamic_mpath()
+   local masterTbl   = masterTbl()
+   local moduleStack = masterTbl.moduleStack
+   local iStack      = #moduleStack
+   local moduleT     = moduleStack[iStack].moduleT
+   moduleT.changeMPATH = true
 end
 
 function Spider_append_path(kind, t)
@@ -148,54 +160,71 @@ function Spider_append_path(kind, t)
    end
 end
 
+local shellNm = "bash"
 
-local function l_findModules(mpath, mt, mList, sn, v, moduleT)
+local function l_loadMe(entryT, moduleStack, iStack, myModuleT, mt, mList, mpath, sn, msg)
+   local shell         = _G.Shell
+   local tracing       = cosmic:value("LMOD_TRACING")
+   local fn            = entryT.fn
+   local sn            = entryT.sn
+   local fullName      = entryT.fullName
+   local version       = entryT.version
+   moduleStack[iStack] = { mpath = mpath, sn = sn, fullName = fullName, moduleT = myModuleT, fn = fn}
+   local mname         = MName:new("entryT", entryT)
+   mt:add(mname, "pending")
 
-   local shell    = _G.Shell
-   local tracing  = cosmic:value("LMOD_TRACING")
-   local function l_loadMe(entryT, moduleStack, iStack, myModuleT)
-      local shellNm       = "bash"
-      local fn            = entryT.fn
-      local sn            = entryT.sn
-      local fullName      = entryT.fullName
-      local version       = entryT.version
-      moduleStack[iStack] = { mpath = mpath, sn = sn, fullName = fullName, moduleT = myModuleT, fn = fn}
-      local mname         = MName:new("entryT", entryT)
-      mt:add(mname, "pending")
-
-      if (tracing == "yes") then
-         local b          = {}
-         b[#b + 1]        = "Spider Loading: "
-         b[#b + 1]        = fullName
-         b[#b + 1]        = " (fn: "
-         b[#b + 1]        = fn or "nil"
-         b[#b + 1]        = ")\n"
-         shell:echo(concatTbl(b,""))
-      end
-
-      loadModuleFile{file=fn, help=true, shell=shellNm, reportErr=false, mList = mList}
-      hook.apply("load_spider",{fn = fn, modFullName = fullName, sn = sn})
-      mt:setStatus(sn, "active")
+   if (tracing == "yes") then
+      tracing_msg{msg, fullName, " (fn: ", fn or "nil", ")"}
    end
 
+   loadModuleFile{file=fn, help=true, shell=shellNm, reportErr=false, mList = mList}
+   hook.apply("load_spider",{fn = fn, modFullName = fullName, sn = sn})
+   mt:setStatus(sn, "active")
+end
+
+local function l_findModules(mpath, mt, mList, sn, v, moduleT)
    local entryT
    local moduleStack = masterTbl().moduleStack
    local iStack      = #moduleStack
    if (v.file) then
       entryT   = { fn = v.file, sn = sn, userName = sn, fullName = sn, version = false}
-      l_loadMe(entryT, moduleStack, iStack, v.metaModuleT)
+      l_loadMe(entryT, moduleStack, iStack, v.metaModuleT, mt, mList, mpath, sn, "Spider Loading:       ")
    end
    if (next(v.fileT) ~= nil) then
       for fullName, vv in pairs(v.fileT) do
          vv.Version = extractVersion(fullName, sn)
          entryT   = { fn = vv.fn, sn = sn, userName = fullName, fullName = fullName,
                       version = vv.Version }
-         l_loadMe(entryT, moduleStack, iStack, vv)
+         l_loadMe(entryT, moduleStack, iStack, vv, mt, mList, mpath, sn, "Spider Loading:       ")
       end
    end
    if (next(v.dirT) ~= nil) then
       for name, vv in pairs(v.dirT) do
          l_findModules(mpath, mt, mList, sn, vv)
+      end
+   end
+end
+
+local function l_findChangeMPATH_modules(mpath, mt, mList, sn, v, moduleT)
+   local entryT
+   local moduleStack = masterTbl().moduleStack
+   local iStack      = #moduleStack
+   if (v.file) then
+      LmodError("Calling l_findChangeMPATH_modules w v.file")
+   end
+   if (next(v.fileT) ~= nil) then
+      for fullName, vv in pairs(v.fileT) do
+         if (vv.changeMPATH == true) then
+            vv.Version = extractVersion(fullName, sn)
+            entryT   = { fn = vv.fn, sn = sn, userName = fullName, fullName = fullName,
+                         version = vv.Version }
+            l_loadMe(entryT, moduleStack, iStack, vv, mt, mList, mpath, sn,"Spider Loading again: ")
+         end
+      end
+   end
+   if (next(v.dirT) ~= nil) then
+      for name, vv in pairs(v.dirT) do
+         l_findChangeMPATH_modules(mpath, mt, mList, sn, vv)
       end
    end
 end
@@ -259,14 +288,12 @@ function M.searchSpiderDB(self, strA, dbT, providedByT)
    return kywdT, kywdExtsT
 end
 
-
-
-
-function M.findAllModules(self, mpathA, spiderT)
+function M.findAllModules(self, mpathA, spiderT, mpathMapT)
    dbg.start{"Spider:findAllModules(",concatTbl(mpathA,", "),")"}
    spiderT.version = LMOD_CACHE_VERSION
 
    local tracing         = cosmic:value("LMOD_TRACING")
+   local dynamicCache    = (cosmic:value("LMOD_DYNAMIC_SPIDER_CACHE") ~= "no")
    local mt              = deepcopy(MT:singleton())
    local maxdepthT       = mt:maxDepthT()
    local masterTbl       = masterTbl()
@@ -279,11 +306,16 @@ function M.findAllModules(self, mpathA, spiderT)
    local exit            = os.exit
    os.exit               = l_nothing
    
+   local mcp_old   = mcp
+   dbg.print{"Setting mcp to ", mcp:name(),"\n"}
+   mcp = MasterControl.build("spider")
+
+
    sandbox_set_os_exit(l_nothing)
    if (tracing == "no" and not dbg.active()) then
+      dbg.print{"Turning off stdio\n"}
       turn_off_stdio()
    end
-   dbg.print{"setting os.exit to l_nothing; turn off output to stderr\n"}
    if (Use_Preload) then
       local a = {}
       mList   = getenv("LOADEDMODULES") or ""
@@ -305,6 +337,8 @@ function M.findAllModules(self, mpathA, spiderT)
       end
    end
 
+   local seenT = {}
+
    while(#dirStk > 0) do
       repeat
 
@@ -312,32 +346,58 @@ function M.findAllModules(self, mpathA, spiderT)
          local mpath     = dirStk[#dirStk]
          dirStk[#dirStk] = nil
 
-         -- skip mpath directory if already walked.
-         if (spiderT[mpath]) then break end
-
          -- skip mpath if directory does not exist
          -- or can not be read
          local attr  = lfs.attributes(mpath)
          if (not attr or attr.mode ~= "directory" or
              (not access(mpath,"rx")))               then break end
 
-         dbg.print{"mpath: ", mpath,"\n"}
-         local moduleA     = ModuleA:__new({mpath}, maxdepthT):moduleA()
-         local T           = moduleA[1].T
-         for sn, v in pairs(T) do
-            l_findModules(mpath, mt, mList, sn, v)
+         -- skip mpath directory if already walked.
+         if (seenT[mpath] or not isDir(mpath)) then break end
+
+         if (spiderT[mpath] == nil ) then
+            dbg.print{"Running l_findModules on: ", mpath,"\n"}
+            if (tracing == "yes") then
+               tracing_msg{"Full spider search on ",mpath}
+            end
+            
+            local moduleA     = ModuleA:__new({mpath}, maxdepthT):moduleA()
+            local T           = moduleA[1].T
+            for sn, v in pairs(T) do
+               l_findModules(mpath, mt, mList, sn, v)
+            end
+            spiderT[mpath] = moduleA[1].T
+         elseif (dynamicCache) then
+            dbg.print{"Running l_findChangeMPATH_modules on: ", mpath,"\n"}
+            if (tracing == "yes") then
+               tracing_msg{"dynamic spider search on ",mpath}
+            end
+            for sn, v in pairs(spiderT[mpath]) do
+               l_findChangeMPATH_modules(mpath, mt, mList, sn, v)
+            end
          end
-         spiderT[mpath] = moduleA[1].T
+         seenT[mpath]   = true
       until true
    end
 
-   dbg.print{"Resetting os.exit back; stderr back on\n"}
+   dbg.print{"Resetting os.exit back\n"}
    os.exit               = exit
    sandbox_set_os_exit(exit)
    if (tracing == "no" and not dbg.active()) then
       turn_on_stdio()
+      dbg.print{"stderr back on\n"}
    end
+
+   local t = masterTbl.mpathMapT
+   if (next(t) ~= nil) then
+      for k,v in pairs(t) do
+         mpathMapT[k] = v
+      end
+   end
+
    dbg.fini("Spider:findAllModules")
+   mcp = mcp_old
+   dbg.print{"Setting mcp to ", mcp:name(),"\n"}
 end
 
 function extend(a,b)
@@ -570,6 +630,7 @@ function M.buildDbT(self, mpathA, mpathMapT, spiderT, dbT)
                sort(parentT[mpath], l_cmp)
             end
             t.parentAA   = parentT[mpath]
+            t.mpath      = vv.mpath
             t.fullName   = fullName
             t.hidden     = not mrc:isVisible{fullName=fullName, sn=sn, fn=vv.fn}
             if (not vv.dot_version) then
@@ -615,10 +676,11 @@ end
 function M.buildProvideByT(self, dbT, providedByT)
    dbg.start{"Spider:buildProvideByT(dbT, providedByT)"}
 
+   local show_hidden = masterTbl().show_hidden
    local mrc = MRC:singleton()
    for sn, vv in pairs(dbT) do
       for fullPath, v in pairs(vv) do
-         local hidden = not mrc:isVisible{fullName=v.fullName, sn=sn, fn=fullPath}
+         local hidden = not (show_hidden or mrc:isVisible{fullName=v.fullName, sn=sn, fn=fullPath})
          if (v.provides ~= nil) then
             local providesA = v.provides
             for i = 1, #providesA do
@@ -629,12 +691,12 @@ function M.buildProvideByT(self, dbT, providedByT)
                local parentAA = v.parentAA
                if (parentAA == nil) then
                   A[#A+1] = {fullName = v.fullName, pV = v.pV, hidden = hidden,
-                             my_name = fullName}
+                             my_name = fullName, mpath = v.mpath}
                else
                   for j = 1,#parentAA do
                      local hierStr = concatTbl(parentAA[j]," ")
                      A[#A+1] = {fullName = v.fullName .. " (" .. hierStr .. ")", pV = v.pV,
-                                hidden = hidden, my_name = fullName}
+                                hidden = hidden, my_name = fullName, mpath = v.mpath}
                   end
                end
                T[fullName]     = A
@@ -660,6 +722,7 @@ function M.buildProvideByT(self, dbT, providedByT)
       end
    end
 
+   dbg.printT("providedByT",providedByT)
    dbg.fini("Spider:buildProvideByT")
 
 
@@ -1143,7 +1206,8 @@ function M._Level1(self, dbT, providedByT, possibleA, sn, key, helpFlg)
             if (fullVT[kk] == nil) then
                key         = sn
                Description = v.Description
-               fullVT[kk]  = { fullName = v.fullName, Category = v.Category, propT = v.propT }
+               fullVT[kk]  = { fullName = v.fullName, Category = v.Category,
+                               propT = v.propT, parentAA = v.parentAA }
             end
             if (kk > kk0) then
                kk0      = kk

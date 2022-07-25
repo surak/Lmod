@@ -2,6 +2,19 @@
 Lmod: A New Environment Module System
 =====================================
 
+Monthly Zoom Meeting
+====================
+
+      **NOTE**
+      Lmod is holding Monthly Zoom meeting to discuss various topics.
+      Typically it is the first Tuesday of the Month at 9:30 U.S. Central (which
+      is 14:30 UTC or 15:30 UTC in the winter months). Beginners are
+      welcome.  There is always a Q/A session at the beginning. Topic
+      announcements are sent to the Lmod mailing list.
+
+      See: https://github.com/TACC/Lmod/wiki for details.
+
+
 PURPOSE
 ^^^^^^^
 
@@ -132,12 +145,20 @@ Advanced Topics
    340_inherit
    350_community
 
+Internal Structure of Lmod
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. toctree::
+   :maxdepth: 1
+
+   400_code_conventions
+
+
 Topics yet to be written
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 #. Optional Software layout, two digit rule
-#. Advanced Topics: priority path, .modulerc tricks
-#. internal structure of lmod.
+#. Advanced Topics: priority path,
 
 
 

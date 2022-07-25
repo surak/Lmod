@@ -133,6 +133,7 @@ local function l_new(self)
    local activeTerm        = haveTermSupport() and "true" or colorize("red","false")
    local avail_style       = cosmic:value("LMOD_AVAIL_STYLE")
    local lmod_configDir    = cosmic:value("LMOD_CONFIG_DIR")
+   local dynamic_cache     = cosmic:value("LMOD_DYNAMIC_SPIDER_CACHE")
    local ksh_support       = cosmic:value("LMOD_KSH_SUPPORT")
    local extended_default  = cosmic:value("LMOD_EXTENDED_DEFAULT")
    local avail_extensions  = cosmic:value("LMOD_AVAIL_EXTENSIONS")
@@ -178,6 +179,11 @@ local function l_new(self)
    local fast_tcl_interp   = cosmic:value("LMOD_FAST_TCL_INTERP")
    local allow_root_use    = cosmic:value("LMOD_ALLOW_ROOT_USE")
    local lmodrc            = cosmic:value("LMOD_RC")
+   local dfltModules       = cosmic:value("LMOD_SYSTEM_DEFAULT_MODULES")
+
+   if (dfltModules == "") then
+      dfltModules = "<empty>"
+   end
 
    if (lmodrc == "") then
       lmodrc = "<empty>"
@@ -210,6 +216,7 @@ local function l_new(self)
    tbl.disp_av_ext  = { k = "Display Extension w/ avail"        , v = avail_extensions, }
    tbl.dot_files    = { k = "Using dotfiles"                    , v = using_dotfiles,   }
    tbl.dupPaths     = { k = "Allow duplicate paths"             , v = duplicate_paths,  }
+   tbl.dynamicC     = { k = "Dynamic Spider Cache"              , v = dynamic_cache,    }
    tbl.extendDflt   = { k = "Allow extended default"            , v = extended_default, }
    tbl.exactMatch   = { k = "Require Exact Match/no defaults"   , v = exactMatch,       }
    tbl.expMCmd      = { k = "Export the module command"         , v = export_module,    }
@@ -249,6 +256,7 @@ local function l_new(self)
    tbl.siteName     = { k = "Site Name"                         , v = site_name,        }
    tbl.spdr_ignore  = { k = "Ignore Cache"                      , v = ignore_cache,     }
    tbl.spdr_loads   = { k = "Cached loads"                      , v = cached_loads,     }
+   tbl.sysDfltM     = { k = "System Default Modules"            , v = dfltModules,      }
    tbl.sysName      = { k = "System Name"                       , v = system_name,      }
    tbl.syshost      = { k = "SYSHOST (cluster name)"            , v = syshost,          }
    tbl.tcl_version  = { k = "TCL Version"                       , v = tcl_version,      }
@@ -277,12 +285,26 @@ function M.singleton(self)
    return s_configuration
 end
 
+function l_miniReport(self,b)
+   local aa = cosmic:reportChangesFromDefault()
+   b[#b+1] = "Changes from Default Configuration"
+   b[#b+1] = "----------------------------------\n"
+   if (next(aa) ~= nil) then
+      bt      = BeautifulTbl:new{tbl=aa}
+      b[#b+1] = bt:build_tbl()
+      b[#b+1] = "\n"
+   end
+end
+
+
 --------------------------------------------------------------------------
 -- Report the current configuration.
 -- @param self A Configuration object
 -- @return the configuration report as a single string.
-function M.report(self)
+function M.report(self, t)
    local readLmodRC = ReadLmodRC:singleton()
+   local tbl        = t or {}
+   local mini       = tbl.mini
    local a          = {}
    local tbl        = self.tbl
    a[#a+1]          = {"Description", "Value", }
@@ -293,54 +315,62 @@ function M.report(self)
    end
 
    local b = {}
-   local bt = BeautifulTbl:new{tbl=a}
-   b[#b+1]  = bt:build_tbl()
-   b[#b+1]  = "\n"
-
-   local aa = cosmic:reportChangesFromDefault()
-   if (next(aa) ~= nil) then
-      b[#b+1] = "Changes from Default Configuration"
-      b[#b+1] = "----------------------------------\n"
-
-      bt      = BeautifulTbl:new{tbl=aa}
+   local bt 
+   if (not mini) then
+      bt      = BeautifulTbl:new{tbl=a}
       b[#b+1] = bt:build_tbl()
       b[#b+1] = "\n"
    end
 
+   local aa = cosmic:reportChangesFromDefault()
+   b[#b+1] = "Changes from Default Configuration"
+   b[#b+1] = "----------------------------------\n"
 
-   local rcFileA = readLmodRC:rcFileA()
-   if (#rcFileA) then
-      b[#b+1] = "Active RC file(s):"
-      b[#b+1] = "------------------"
-      for i = 1, #rcFileA do
-         b[#b+1] = rcFileA[i]
+   
+   if (next(aa) ~= nil) then
+      bt      = BeautifulTbl:new{tbl=aa}
+      b[#b+1] = bt:build_tbl()
+   else
+      b[#b+1] = "--- None ---"
+   end
+   b[#b+1] = "\n"
+
+
+   if (not mini) then
+      local rcFileA = readLmodRC:rcFileA()
+      if (#rcFileA) then
+         b[#b+1] = "Active RC file(s):"
+         b[#b+1] = "------------------"
+         for i = 1, #rcFileA do
+            b[#b+1] = rcFileA[i]
+         end
+         b[#b+1]  = "\n"
       end
+
+
+      local scDescriptT = readLmodRC:scDescriptT()
+      if (#scDescriptT > 0) then
+         a = {}
+         a[#a+1]   = {"Cache Directory",  "Time Stamp File",}
+         a[#a+1]   = {"---------------",  "---------------",}
+         for i = 1, #scDescriptT do
+            a[#a+1] = { tostring(scDescriptT[i].dir), tostring(scDescriptT[i].timestamp)}
+         end
+         bt = BeautifulTbl:new{tbl=a}
+         b[#b+1]  = bt:build_tbl()
+         b[#b+1]  = "\n"
+      end
+      
+      local banner = Banner:singleton()
+      local border = banner:border(2)
+      local str    = " Lmod Property Table:"
+      b[#b+1]  = border
+      b[#b+1]  = str
+      b[#b+1]  = border
+      b[#b+1]  = "\n"
+      b[#b+1]  = serializeTbl{indent = true, name="propT", value = readLmodRC:propT() }
       b[#b+1]  = "\n"
    end
-
-
-   local scDescriptT = readLmodRC:scDescriptT()
-   if (#scDescriptT > 0) then
-      a = {}
-      a[#a+1]   = {"Cache Directory",  "Time Stamp File",}
-      a[#a+1]   = {"---------------",  "---------------",}
-      for i = 1, #scDescriptT do
-         a[#a+1] = { tostring(scDescriptT[i].dir), tostring(scDescriptT[i].timestamp)}
-      end
-      bt = BeautifulTbl:new{tbl=a}
-      b[#b+1]  = bt:build_tbl()
-      b[#b+1]  = "\n"
-   end
-
-   local banner = Banner:singleton()
-   local border = banner:border(2)
-   local str    = " Lmod Property Table:"
-   b[#b+1]  = border
-   b[#b+1]  = str
-   b[#b+1]  = border
-   b[#b+1]  = "\n"
-   b[#b+1]  = serializeTbl{indent = true, name="propT", value = readLmodRC:propT() }
-   b[#b+1]  = "\n"
 
    return concatTbl(b,"\n")
 end

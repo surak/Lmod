@@ -334,10 +334,22 @@ function M.conflict(self, mA)
 end
 
 --------------------------------------------------------------------------
+-- Print conflict command.
+-- @param self A MasterControl object
+-- @param mA An array of module names (MName objects)
+function M.haveDynamicMPATH(self, mA)
+   A[#A+1] = ShowCmdA("haveDynamicMPATH",mA)
+end
+
+--------------------------------------------------------------------------
 -- Print set shell function
 -- @param self A MasterControl object
 function M.set_shell_function(self, name, bashStr, cshStr)
    local a = {}
+   name    = name    or "<unknown>"
+   bashStr = bashStr or ""
+   cshStr  = cshStr  or ""
+   
    a[#a+1] = "set_shell_function("
    a[#a+1] = '"'..name..'",'
    a[#a+1] = bashStr:doubleQuoteString()..','
@@ -359,6 +371,14 @@ end
 function M.source_sh(self, shell, script)
    l_ShowCmd("--source_sh", shell, script)
    MasterControl.source_sh(self, shell, script)
+end
+
+function M.complete(self, ...)
+   l_ShowCmd("complete", ...)
+end
+
+function M.uncomplete(self, ...)
+   l_ShowCmd("uncomplete", ...)
 end
 
 return M

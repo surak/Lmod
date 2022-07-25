@@ -141,6 +141,33 @@ testdescript = {
      runLmod      spider GROMACS/2018                                         #69
      runLmod      spider GROMACS/2019                                         #70
 
+     # Test writing of user cache
+
+     export LMOD_SHORT_TIME=0
+     rm $HOME/.lmod.d/.cache/*
+     runLmod      spider                                                      #71
+
+
+     # Case from U. of Antwerp where spider failed when adding a 
+     # path of itself to $MODULEPATH
+
+     unsetMT
+     export MODULEPATH=$testDir/mf3/system:$testDir/mf3/init-modules
+     unset LMOD_SYSTEM_DEFAULT_MODULES
+     unset LMOD_RC
+     unset LMOD_ADMIN_FILE
+     unset LMOD_PACKAGE_PATH
+
+     runLmod avail                                                            #72
+
+     unset TRIGGER_BUG
+     runLmod spider Appl1                                                     #73
+     export TRIGGER_BUG=
+     runLmod spider Appl1                                                     #74
+
+     unsetMT
+     export MODULEPATH=$testDir/mf4/Core
+     runLmod avail                                                            #75
 
 
 

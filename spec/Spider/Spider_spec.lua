@@ -29,9 +29,10 @@ describe("Testing Spider Class #Spider.",
 
                   local spider  = Spider:new()
                   local spiderT = {}
+                  local mpathMapT = {}
                   _G.mcp = MasterControl.build("spider")
                   _G.MCP = MasterControl.build("spider")
-                  spider:findAllModules({mpath}, spiderT)
+                  spider:findAllModules({mpath}, spiderT, mpathMapT)
                   local gold_spiderT = {
                      ["%ProjDir%/spec/Spider/mf/Core"]  = {
                         TACC = {
@@ -167,11 +168,12 @@ describe("Testing Spider Class #Spider.",
                   posix.setenv("LMOD_MAXDEPTH",   nil,        true)
                   cosmic:assign("LMOD_MAXDEPTH",  false)
 
-                  local spider = Spider:new()
-                  local spiderT = {}
+                  local spider    = Spider:new()
+                  local spiderT   = {}
+                  local mpathMapT = {}
                   _G.mcp = MasterControl.build("spider")
                   _G.MCP = MasterControl.build("spider")
-                  spider:findAllModules({mpath}, spiderT)
+                  spider:findAllModules({mpath}, spiderT, mpathMapT)
                   local gold_spiderT = {
                      ["%ProjDir%/spec/Spider/h/mf/Compiler/gcc/5.9"]  = {
                         mpich = {
@@ -182,6 +184,7 @@ describe("Testing Spider Class #Spider.",
                               ["mpich/17.200.3"]  = {
                                  ["Version"] = "17.200.3",
                                  ["canonical"] = "17.200.3",
+                                 ["changeMPATH"] = true,
                                  ["fn"] = "%ProjDir%/spec/Spider/h/mf/Compiler/gcc/5.9/mpich/17.200.3.lua",
                                  ["luaExt"] = 9,
                                  ["mpath"] = "%ProjDir%/spec/Spider/h/mf/Compiler/gcc/5.9",
@@ -225,6 +228,7 @@ describe("Testing Spider Class #Spider.",
                               ["gcc/5.9.2"]  = {
                                  ["Version"] = "5.9.2",
                                  ["canonical"] = "5.9.2",
+                                 ["changeMPATH"] = true,
                                  ["fn"] = "%ProjDir%/spec/Spider/h/mf/Core/gcc/5.9.2.lua",
                                  ["luaExt"] = 6,
                                  ["mpath"] = "%ProjDir%/spec/Spider/h/mf/Core",
@@ -318,6 +322,7 @@ describe("Testing Spider Class #Spider.",
                            ["Version"] = "5.9.2",
                            ["fullName"] = "gcc/5.9.2",
                            ["hidden"] = false,
+                           ["mpath"] = "%ProjDir%/spec/Spider/h/mf/Core",
                            ["pV"] = "000000005.000000009.000000002.*zfinal",
                            ["wV"] = "000000005.000000009.000000002.*zfinal",
                         },
@@ -327,6 +332,7 @@ describe("Testing Spider Class #Spider.",
                            ["Version"] = "17.200.3",
                            ["fullName"] = "mpich/17.200.3",
                            ["hidden"] = false,
+                           ["mpath"] = "%ProjDir%/spec/Spider/h/mf/Compiler/gcc/5.9",
                            ["pV"] = "000000017.000000200.000000003.*zfinal",
                            parentAA = {
                               {
@@ -341,6 +347,7 @@ describe("Testing Spider Class #Spider.",
                            ["Version"] = "4.0.3",
                            ["fullName"] = "parmetis/4.0.3",
                            ["hidden"] = false,
+                           ["mpath"] = "%ProjDir%/spec/Spider/h/mf/MPI/gcc/5.9/mpich/17.200",
                            ["pV"] = "000000004.000000000.000000003.*zfinal",
                            parentAA = {
                               {
@@ -355,6 +362,7 @@ describe("Testing Spider Class #Spider.",
                            ["Version"] = "2.7.9",
                            ["fullName"] = "python/2.7.9",
                            ["hidden"] = false,
+                           ["mpath"] = "%ProjDir%/spec/Spider/h/mf/Compiler/gcc/5.9",
                            ["pV"] = "000000002.000000007.000000009.*zfinal",
                            parentAA = {
                               {
@@ -367,6 +375,7 @@ describe("Testing Spider Class #Spider.",
                            ["Version"] = "2.7.9",
                            ["fullName"] = "python/2.7.9",
                            ["hidden"] = false,
+                           ["mpath"] = "%ProjDir%/spec/Spider/h/mf/Core",
                            ["pV"] = "000000002.000000007.000000009.*zfinal",
                            ["wV"] = "000000002.000000007.000000009.*zfinal",
                         },
@@ -374,6 +383,7 @@ describe("Testing Spider Class #Spider.",
                            ["Version"] = "2.7.9",
                            ["fullName"] = "python/2.7.9",
                            ["hidden"] = false,
+                           ["mpath"] = "%ProjDir%/spec/Spider/h/mf/MPI/gcc/5.9/mpich/17.200",
                            ["pV"] = "000000002.000000007.000000009.*zfinal",
                            parentAA = {
                               {

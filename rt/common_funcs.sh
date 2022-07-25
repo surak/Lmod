@@ -56,7 +56,7 @@ cleanUp ()
        -e "s|;$PATH_to_SHA1:[0-9];|;|g"                   \
        -e "s| $PATH_to_SHA1||g"                           \
        -e "s|\\\;$PATH_to_SHA1:[0-9]\\\;|\\\;|g"          \
-       -e "s|^Lmod version.*||g"                          \
+       -e "s|^ *Lmod version.*||g"                        \
        -e "s|^LMOD_LD_PRELOAD.*||g"                       \
        -e "s|^LuaFileSystem version.*||g"                 \
        -e "s|^Lua Version.*||g"                           \
@@ -137,17 +137,17 @@ runR ()
 runMe ()
 {
    runBase "$@"
-   eval `cat _stdout.$NUM`
+   eval "$(cat _stdout.$NUM)"
 }
 runLmod ()
 {
    runBase $LUA_EXEC $projectDir/src/lmod.in.lua bash --regression_testing "$@"
-   eval `cat _stdout.$NUM`
+   eval "`cat _stdout.$NUM`"
 }
 
 runSettargBash()
 {
-  runMe $LUA_EXEC $projectDir/settarg/settarg_cmd.in.lua -s bash --no_cpu_model "$@"
+  runMe $LUA_EXEC $projectDir/settarg/settarg_cmd.in.lua -s bash --generic_arch "$@"
 }
 
 runSh2MF ()
@@ -263,6 +263,8 @@ initStdEnvVars()
   unset SHLIB_PATH
   unset TERM
   unset _LMFILES_
+  unset LMOD_SET_NOGLOB
+  unset LMOD_SYSTEM_DEFAULT_MODULES
 
   PATH_to_LUA=`findcmd --pathOnly lua`
   PATH_to_TM=`findcmd --pathOnly tm`
