@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# update master branch, just to keep it up with upstream
+git pull upstream master 
+git push
+
 # Get latest tags from upstream. Github UI is not enough
 git fetch upstream --tags 
 git push --tags
