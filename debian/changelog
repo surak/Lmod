@@ -1,3 +1,24 @@
+lmod (8.7.13) unstable; urgency=medium
+
+  * Setting TAG_VERSION to 8.7.13
+
+ -- Alexandre Strube <surak@surak.eti.br>  Wed, 14 Sep 2022 21:49:27 +0200
+
+
+lmod () unstable; urgency=medium
+
+  * Setting TAG_VERSION to 
+
+ -- Alexandre Strube <surak@surak.eti.br>  Wed, 14 Sep 2022 21:46:00 +0200
+
+
+lmod () unstable; urgency=medium
+
+  * Setting TAG_VERSION to 
+
+ -- Alexandre Strube <surak@surak.eti.br>  Wed, 14 Sep 2022 21:45:03 +0200
+
+
 lmod (8.7.12) unstable; urgency=medium
 
   * Setting TAG_VERSION to 8.7.12
