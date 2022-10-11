@@ -36,7 +36,8 @@ RUN apt-get update \
     lua-posix \
     lua-term \
     lua5.3 \
-    procps
+    procps \
+    bc
     
 
 RUN mkdir /tmp/git-repo; cd /tmp/git-repo ; git clone https://github.com/surak/Lmod.git ; \

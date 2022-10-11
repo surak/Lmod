@@ -12,6 +12,7 @@ TDIR=debian/lmod
 
 override_dh_auto_configure:
 	dh_auto_configure -- \
+		--with-mode=0755 \
 		PS=/bin/ps
 
 override_dh_auto_test:
@@ -20,5 +21,5 @@ override_dh_pysupport:
 
 override_dh_auto_install:
 	dh_auto_install
-	cp ${TDIR}/usr/lmod/lmod/init/profile ${TDIR}/etc/profile.d/lmod.sh
-	cp debian/modulespath ${TDIR}/etc/lmod/
+	sudo cp ${TDIR}/usr/lmod/lmod/init/profile ${TDIR}/etc/profile.d/lmod.sh
+	sudo cp debian/modulespath ${TDIR}/etc/lmod/
