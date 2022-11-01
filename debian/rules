@@ -21,5 +21,5 @@ override_dh_pysupport:
 
 override_dh_auto_install:
 	dh_auto_install
-	sudo cp ${TDIR}/usr/lmod/lmod/init/profile ${TDIR}/etc/profile.d/lmod.sh
-	sudo cp debian/modulespath ${TDIR}/etc/lmod/
+	cp ${TDIR}/usr/lmod/lmod/init/profile ${TDIR}/etc/profile.d/lmod.sh
+	cp debian/modulespath ${TDIR}/etc/lmod/

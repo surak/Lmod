@@ -16,19 +16,19 @@ if(~ $#MODULEPATH_ROOT 0) {
   if(test -f $MODULEPATH_INIT) {
      for(dir in `{cat $MODULEPATH_INIT | sed 's/#.*$//'}) { # Allow end-of-line comments.
         if(test -d $dir)
-           MODULEPATH=`{@PKGV@/libexec/addto --append MODULEPATH $dir}
+           MODULEPATH=`{sudo @PKGV@/libexec/addto --append MODULEPATH $dir}
      }
   }
   if not {
-     MODULEPATH=`{@PKGV@/libexec/addto --append MODULEPATH $MODULEPATH_ROOT/$LMOD_sys $MODULEPATH_ROOT/Core}
-     MODULEPATH=`{@PKGV@/libexec/addto --append MODULEPATH @PKGV@/modulefiles/Core}
+     MODULEPATH=`{sudo @PKGV@/libexec/addto --append MODULEPATH $MODULEPATH_ROOT/$LMOD_sys $MODULEPATH_ROOT/Core}
+     MODULEPATH=`{sudo @PKGV@/libexec/addto --append MODULEPATH @PKGV@/modulefiles/Core}
   }
 
   #################################################################
   # Prepend any directories in LMOD_SITE_MODULEPATH to $MODULEPATH
   #################################################################
   if(! ~ $#LMOD_SITE_MODULEPATH 0) {
-    MODULEPATH=`{@PKGV@/libexec/addto MODULEPATH $LMOD_SITE_MODULEPATH}
+    MODULEPATH=`{sudo @PKGV@/libexec/addto MODULEPATH $LMOD_SITE_MODULEPATH}
   }
 
 
@@ -39,7 +39,7 @@ if(~ $#MODULEPATH_ROOT 0) {
   # the system MANPATH will be found
   if(~ $#MANPATH 0)
     MANPATH=:
-  MANPATH=`{@PKGV@/libexec/addto MANPATH @PKGV@/share/man}
+  MANPATH=`{sudo @PKGV@/libexec/addto MANPATH @PKGV@/share/man}
 }
 
 fn findExec {

@@ -20,13 +20,13 @@ if [ -z "${MODULEPATH_ROOT:-}" ]; then
      for str in $(cat ${MODULEPATH_INIT} | sed 's/#.*$//'); do   # Allow end-of-line comments.
         for dir in $str; do
             if [ -d $dir ]; then
-                export MODULEPATH=$(@PKGV@/libexec/addto --append MODULEPATH $dir)
+                export MODULEPATH=$(sudo @PKGV@/libexec/addto --append MODULEPATH $dir)
             fi
         done
      done
   else
-     export MODULEPATH=$(@PKGV@/libexec/addto --append MODULEPATH $MODULEPATH_ROOT/$LMOD_sys $MODULEPATH_ROOT/Core)
-     export MODULEPATH=$(@PKGV@/libexec/addto --append MODULEPATH @PKGV@/modulefiles/Core)
+     export MODULEPATH=$(sudo @PKGV@/libexec/addto --append MODULEPATH $MODULEPATH_ROOT/$LMOD_sys $MODULEPATH_ROOT/Core)
+     export MODULEPATH=$(sudo @PKGV@/libexec/addto --append MODULEPATH @PKGV@/modulefiles/Core)
   fi
 
   #################################################################
@@ -37,7 +37,7 @@ if [ -z "${MODULEPATH_ROOT:-}" ]; then
     OLD_IFS=$IFS
     IFS=:
     for dir in $LMOD_SITE_MODULEPATH; do
-      export MODULEPATH=$(@PKGV@/libexec/addto MODULEPATH $dir)
+      export MODULEPATH=$(sudo @PKGV@/libexec/addto MODULEPATH $dir)
     done
     IFS=$OLD_IFS
   fi
@@ -50,7 +50,7 @@ if [ -z "${MODULEPATH_ROOT:-}" ]; then
   if [ -z "${MANPATH:-}" ]; then
     export MANPATH=:
   fi
-  export MANPATH=$(@PKGV@/libexec/addto MANPATH @PKGV@/share/man)
+  export MANPATH=$(sudo @PKGV@/libexec/addto MANPATH @PKGV@/share/man)
 fi
 
 findExec ()
