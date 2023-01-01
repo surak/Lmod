@@ -41,9 +41,9 @@ RUN apt-get update \
     
 
 RUN mkdir /tmp/git-repo; cd /tmp/git-repo ; git clone https://github.com/surak/Lmod.git ; \
-    cd Lmod ; git checkout tags/8.7.14 ; \ 
+    cd Lmod ; git checkout tags/8.7.15 ; \ 
     git checkout master debian docker ; \
     cd Lmod ; debuild -b -uc -us; \
-    cd .. ; dpkg -i ./lmod_8.7.14_all.deb ; \ 
+    cd .. ; dpkg -i ./lmod_8.7.15_all.deb ; \ 
     bash -c "source /etc/profile.d/lmod.sh; module --version"
 
