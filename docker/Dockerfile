@@ -1,4 +1,4 @@
-FROM debian:11
+FROM debian:12
 
 # Optionally, add incoming to sources.list
 #RUN echo 'deb http://incoming.debian.org/debian-buildd buildd-unstable main contrib non-free' > /etc/apt/sources.list.d/incoming.list
