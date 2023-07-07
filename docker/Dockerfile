@@ -9,6 +9,7 @@ RUN find /etc/apt/sources.list* -type f -exec sed -i 'p; s/^deb /deb-src /' '{}'
 # Install developer tools
 RUN apt-get update \
  && apt-get install --no-install-recommends -yV \
+    apt-utils \
     build-essential \
     devscripts \
     equivs \
@@ -41,9 +42,9 @@ RUN apt-get update \
     
 
 RUN mkdir /tmp/git-repo; cd /tmp/git-repo ; git clone https://github.com/surak/Lmod.git ; \
-    cd Lmod ; git checkout tags/8.7.27 ; \ 
+    cd Lmod ; git checkout tags/8.7.28 ; \ 
     git checkout master debian docker ; \
     cd Lmod ; debuild -b -uc -us; \
-    cd .. ; dpkg -i ./lmod_8.7.27_all.deb ; \ 
+    cd .. ; dpkg -i ./lmod_8.7.28_all.deb ; \ 
     bash -c "source /etc/profile.d/lmod.sh; module --version"
 
