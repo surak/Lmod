@@ -45,9 +45,9 @@ RUN mkdir /tmp/git-repo; cd /tmp/git-repo ; \
     git clone https://github.com/surak/Lmod.git ; \
     cd Lmod ; \
     git fetch --tags; \
-    git checkout tags/8.7.51 ; \ 
+    git checkout tags/8.7.53 ; \ 
     git checkout origin/debian debian docker ; \
     cd Lmod ; debuild -b -uc -us; \
-    cd .. ; dpkg -i ./lmod_8.7.51_all.deb ; \ 
+    cd .. ; dpkg -i ./lmod_8.7.53_all.deb ; \ 
     bash -c "source /etc/profile.d/lmod.sh; module --version"
 
