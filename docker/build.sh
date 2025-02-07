@@ -57,4 +57,7 @@ docker cp deb:/tmp/git-repo/lmod_${VERSION}_all.deb .
 docker rm deb
 
 echo "To run this image: docker run --rm -it --name deb debian  /bin/bash \nTo cleanup the cache: docker builder prune -a -f "
+
+echo "to upload: gh release create v\"${VERSION}\"  lmod_${VERSION}_all.deb -t \"$VERSION\" --notes \"See README.new\" "
+
 fi

@@ -38,6 +38,7 @@ RUN apt-get update \
     lua-term \
     lua5.3 \
     procps \
+    pkg-config \
     bc
     
 
