@@ -27,3 +27,4 @@ auto
 .DS_Store
 *.key
 lmod.check.txt
+.git-token
