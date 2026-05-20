@@ -1,3 +1,10 @@
+lmod (9.2.2) unstable; urgency=medium
+
+  * Setting TAG_VERSION to 9.2.2
+
+ -- Alexandre Strube <surak@surak.eti.br>  Wed, 20 May 2026 10:48:44 +0200
+
+
 lmod (9.2.1) unstable; urgency=medium
 
   * Setting TAG_VERSION to 9.2.1
