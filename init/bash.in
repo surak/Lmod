@@ -164,6 +164,14 @@ clearLmod()
   eval $($LMOD_DIR/clearLMOD_cmd --shell bash --full "$@")
 }
 
+# Export clearMT/clearLmod (in addition to module/ml above) so they propagate
+# to non-interactive bash scripts and subshells (parity with Lmod 9.x). These
+# must be exported after their definitions.
+if [ -n "${BASH_VERSION:-}" -a "@export_module@" != no ]; then
+  export -f clearMT
+  export -f clearLmod
+fi
+
 xSetTitleLmod()
 {
   builtin echo -n -e "\033]2;$1\007";
